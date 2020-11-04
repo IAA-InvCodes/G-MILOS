@@ -308,7 +308,6 @@ __device__ void mil_svdf(float * h, float *beta, float *delta, float * v, float 
 	int j,k;
 
 	float aux2[NTERMS];
-	//svdcmpf(h,NTERMS,NTERMS,w,v);
 	svdcordicf(h,TAMANIO_SVD,TAMANIO_SVD,w,v,NUM_ITER_SVD_CORDIC);
 
 	float sum;

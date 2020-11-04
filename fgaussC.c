@@ -22,10 +22,7 @@ PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambd
 	int nmtb;
 	PRECISION cte;
 	
-
-	///Conversion from FWHM to Gaussian sigma (1./(2*sqrt(2*alog2)))
 	PRECISION sigma=FWHM*0.42466090/1000.0; // in Angstroms
-	//PRECISION sigma = FWHM * (2 * sqrt(2 * log(2)))/1000;
 
 	term = (PRECISION *)calloc(nLambda, sizeof(PRECISION));
 
@@ -78,16 +75,13 @@ PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambd
 	{
 		cte += mtb[i];
 	}
-	//mtb_final = calloc(nmtb,sizeof(REAL));
 	for (i = 0; i < nLambda; i++)
 	{
 		mtb[i] /= cte;
-		//mtb_final[i] = mtb[i];
 	}
 
 	free(loai);
 	free(term);
 
-	//return mtb_final;
 	return mtb;
 }

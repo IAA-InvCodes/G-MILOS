@@ -40,16 +40,12 @@
 #define MIN(a,b) (((a) < (b)) ?  (a) : (b))
 #define SQR(a) ((a) *(a))
 
-#define SIGNF(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
-#define MAXF(a,b) (((a) > (b)) ?  (a) : (b))
-#define MINF(a,b) (((a) < (b)) ?  (a) : (b))
-#define SQRF(a) ((a) *(a))
+
 
 __device__ void svdcmp(PRECISION *a, int m, int n, PRECISION w[], PRECISION *v);
 __device__ PRECISION dpythag(PRECISION a, PRECISION b);
 
-__device__ void svdcmpf(float *a, int m, int n, float w[], float *v);
-__device__ float dpythagf(float a, float b);
+
 
 #endif
 
