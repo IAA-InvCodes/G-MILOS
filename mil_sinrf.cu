@@ -10,7 +10,6 @@
 #include <cuComplex.h>
 
 extern __constant__ PRECISION d_lambda_const [MAX_LAMBDA];
-//extern __constant__ PRECISION d_lambda_const_wcl  [MAX_LAMBDA];
 extern __constant__ PRECISION d_wlines_const [2];
 extern __constant__ PRECISION d_psfFunction_const  [MAX_LAMBDA];
 extern __constant__ cuDoubleComplex d_zdenV[7];
@@ -20,19 +19,7 @@ __device__  void funcionComponentFor_sinrf(const int  n_pi,int  numl,const REAL 
 __global__ void d_fvoigt(PRECISION  damp, REAL *fi_x, REAL *shi_x, REAL * uu, REAL * F, REAL * H, REAL r_nuxB, const REAL wex,int firstZero,PRECISION  dopp, REAL  ulos);
 __global__ void mil_sinrf_kernel(PRECISION E0_2,PRECISION S1, PRECISION S0, PRECISION ah,int nlambda,REAL *spectra,REAL *spectra_mc, ProfilesMemory * pM, REAL cosis_2,REAL sinis_cosa,REAL sinis_sina, REAL cosi, REAL sinis);
 
-/*
-	E00	int eta0; // 0
-	MF	int B;    
-	VL	PRECISION vlos;
-	LD	PRECISION dopp;
-	A	PRECISION aa;
-	GM	int gm; //5
-	AZI	int az;
-	B0	PRECISION S0;
-	B1	PRECISION S1;
-	MC	PRECISION mac; //9
-		PRECISION alfa;		
-*/
+
 
 __constant__ REAL CC = PI / 180.0;
 __constant__ REAL CC_2 = (PI / 180.0) * 2;
@@ -109,11 +96,7 @@ __device__ void mil_sinrf(const Cuantic cuantic, Init_Model *initModel, const PR
 
 	//*****
 	mil_sinrf_kernel<<<1,nlambda>>>(__fdividef(E0,2.0),initModel->S1, initModel->S0,ah, nlambda,spectra,spectra_mc, pM,*cosis_2,sinis_cosa,sinis_sina,*cosi,*sinis);
-	//dispersion profiles				
 	cudaDeviceSynchronize();
-	//cudaStreamSynchronize(streamId);
-
-
 
 	int macApplied = 0;
     if(initModel->mac > 0.0001 && spectra_mc!=NULL){
@@ -192,12 +175,6 @@ __global__ void d_fvoigt(PRECISION  damp,REAL *fi_x, REAL *shi_x, REAL * uu,REAL
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 
 	
-	//REAL vv_aux = u[i]-r_nuxB;
-	//uu[i]= vv_aux;
-
-	//REAL vv_aux = ( __fdividef((d_lambda_const[i]-d_wlines_const[1]),(dopp))-(ulos))-r_nuxB;
-	//REAL vv_aux = ( ((d_lambda_const[i]-d_wlines_const[1])/(dopp))-(ulos))-r_nuxB;
-	//REAL vv_aux = (((d_lambda_const_wcl[i])/(dopp))-(ulos))-r_nuxB;
 	REAL sub_aux = (d_lambda_const[i]-d_wlines_const[1]);
 	PRECISION znumr_p_0_0=damp*cte_static_A_6;
 	REAL vv_aux= __fdividef(sub_aux,(dopp));
@@ -205,11 +182,9 @@ __global__ void d_fvoigt(PRECISION  damp,REAL *fi_x, REAL *shi_x, REAL * uu,REAL
 	vv_aux = vv_aux -r_nuxB;
 	uu[i]= vv_aux;
 	PRECISION zi_p_0 = vv_aux;
-	//PRECISION zi_p_0 = FABS(vv_aux);
 	PRECISION znumi_p_0_0=zi_p_0*cte_static_A_6;
 
 	PRECISION znumr_p_1_0=znumr_p_0_0+cte_static_A_5;
-	//PRECISION znumr_p_1_0=znumr_p_0_0+-5.912626209773153;
 	PRECISION znumi_p_1_0_a=znumi_p_0_0*damp;
 	PRECISION znumi_p_1_0_b=znumr_p_1_0*zi_p_0;
 	PRECISION znumi_p_1_0=znumi_p_1_0_a+znumi_p_1_0_b;
