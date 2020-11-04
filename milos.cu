@@ -84,9 +84,7 @@ __global__ void kernel_synthesis(Cuantic *cuantic,Init_Model *initModel,PRECISIO
 	InitProfilesMemoryFromDevice(nlambda,pM,d_cuantic_const);
 	REAL cosi,sinis,sina,cosa, sinda, cosda, sindi, cosdi,cosis_2;
 	int uuGlobal,FGlobal,HGlobal;
-	//mil_sinrf(d_cuantic_const, initModel, wlines, nlambda, spectra, ah, slight, spectra_mc, spectra_slight, filter, pM,&cosi);
 	mil_sinrf(d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, spectra, d_ah_const, slight, spectra_mc, spectra_slight, filter, pM,&cosi,&sinis,&sina,&cosa,&sinda,&cosda,&sindi,&cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-	//mil_sinrf(d_cuantic_const,&d_initModel_const, d_wlines_const, d_nlambda_const, spectra, ah,slight,spectra_mc, spectra_slight,filter,pM);
 	me_der(&d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, d_spectra, spectra_mc, spectra_slight, d_ah_const, slight, filter,pM, fix,cosi,sinis,sina,cosa,sinda,cosda,sindi,cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 	FreeProfilesMemoryFromDevice(pM,d_cuantic_const);
 	free(pM);
@@ -638,12 +636,6 @@ int main(int argc, char **argv)
 
 			h_spectra = (REAL *) malloc(nlambda * NPARMS * sizeof(REAL));
 
-			//checkCuda(cudaMalloc(&d_vlambda,nlambda * sizeof(PRECISION)));
-			//checkCuda(cudaMalloc(&d_wlines, 2 *sizeof(PRECISION)));
-			//checkCuda(cudaMalloc(&d_initModel, sizeof(Init_Model)));
-			//checkCuda(cudaMalloc(&d_Cuantic, sizeof(Cuantic)));
-			//checkCuda(cudaMalloc(&d_fix, sizeof(int)* 11 ));
-			//checkCuda(cudaMalloc(&d_weight, sizeof(REAL)* 4 ));
 			checkCuda(cudaMalloc(&d_spectroPER, nlambda*NPARMS*sizeof(float)));
 			checkCuda(cudaMalloc(&d_vModels, sizeof(Init_Model)));
 			checkCuda(cudaMalloc(&d_vChisqrf, sizeof(float)));
@@ -658,8 +650,6 @@ int main(int argc, char **argv)
 			int  displsSpectro = 0;
 			int  sendCountPixels = 1;
 			int  displsPixels = 0;
-
-
 
 			cudaMemcpyToSymbol(d_lambda_const, vLambda, nlambda * sizeof(PRECISION));
 			cudaMemcpyToSymbol(d_wlines_const, wlines, 2 *sizeof(PRECISION));
@@ -1052,15 +1042,12 @@ int main(int argc, char **argv)
 				strcat(nameAuxOutputModel,MOD_FITS);
 				if(!writeFitsImageModels(nameAuxOutputModel,fitsImage->rows,fitsImage->cols,h_vModels,h_vChisqrf,h_vNumIter,configCrontrolFile.saveChisqr)){
 						printf("\n ERROR WRITING FILE OF MODELS: %s",nameAuxOutputModel);
-						//slog_error(0,"\n ERROR WRITING FILE OF MODELS: %s",nameOutputFileModels);
 				}
 				// PROCESS FILE OF SYNTETIC PROFILES
 
 				if(configCrontrolFile.SaveSynthesisAdjusted){
 					// WRITE SINTHETIC PROFILES TO FITS FILE
 					char nameAuxOutputStokes [4096];
-					//strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.ObservedProfiles));
-					//strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.InitialGuessModel));
 					if(configCrontrolFile.ObservedProfiles[0]!='\0')
 						strcpy(nameAuxOutputStokes,get_basefilename(configCrontrolFile.ObservedProfiles));
 					else
@@ -1105,8 +1092,7 @@ int main(int argc, char **argv)
 				printf("\n\n ***************************** FITS FILE WITH THE SPECTRO IMAGE CAN NOT BE READ IT ******************************\n");
 			}			
 
-			printf(" \n***********************  IMAGE INVERSION DONE, CLEANING MEMORY *********************\n");
-			//freeFitsImage(fitsImage);
+
 		}
 		else{
 			printf("\n OBSERVED PROFILES DOESN'T HAVE CORRECT EXTENSION  .PER or .FITS ");
