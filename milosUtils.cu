@@ -1,6 +1,5 @@
 #include "lib.cuh"
 #include "definesCuda.cuh"
-#include "jacobi_eigenvalue.cuh"
 #include "defines.h"
 #include "milosUtils.cuh"
 #include "time.h"
@@ -284,75 +283,19 @@ __device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, co
 __device__ int mil_svd(PRECISION * h, PRECISION *beta, PRECISION *delta)
 {
 
-	/*cusolverDnHandle_t cusolverH = NULL;
-    cudaStream_t stream = NULL;
-    syevjInfo_t syevj_params = NULL;
-    gesvdjInfo_t gesvdj_params = NULL;
-	cusolverStatus_t status = CUSOLVER_STATUS_SUCCESS;*/
-	
 	const PRECISION epsilon = 1e-12;
 	PRECISION v[NTERMS*NTERMS], w[NTERMS];
-	
 	
 	int i;
 	int j,k; 
 
 	PRECISION aux2[NTERMS];
-	//float aux2[NTERMS];
-
 	svdcmp(h,NTERMS,NTERMS,w,v);
 	
 
 
-		//printf(" NORMALIZACION y CORDIC######################################\n");
-		//	NORMALIZACION
-	/*for(j=0;j<NTERMS*NTERMS;j++){
-		if(fabs(h[j])>maximo){		
-			maximo=fabs(h[j]);
-		}
-	}
-
-	factor=maximo;
-	
-	if(!NORMALIZATION_SVD)
-		factor = 1;
-
-	for(j=0;j<NTERMS*NTERMS;j++){
-		h1[j]=h[j]/factor;
-	}*/
-
-
-
 	//svdcordic(h,TAMANIO_SVD,TAMANIO_SVD,w,v,NUM_ITER_SVD_CORDIC);
 	
-
-
-
-	/*printf("\n AUTOVALORES SVD: ");
-	for(i=0;i<NTERMS;i++){
-		printf("\t %f",w[i]);
-	}
-	//int n_iter,rot_num;
-	//jacobi_eigenvalue(NTERMS,h1,1000,v2,w2,&n_iter,&rot_num);
-	printf("\n AUTOVALORES SVD FLOAT: ");
-	for(i=0;i<NTERMS;i++){
-		printf("\t %f",w2[i]);
-	}*/
-
-	/*printf("\n\n AUTOVALORES : \n");
-	for(i=0;i<NTERMS;i++){
-		printf("%f\t",w[i]);
-	}
-	printf("\n");
-	printf("\n AUTOVECTORES : \n");
-	for(i=0;i<NTERMS;i++){
-		for(j=0;j<NTERMS;j++)
-			printf("%f\t",v[j+NTERMS*i]);
-		printf("\n");
-	}
-	printf("\n");*/
-
-	//multmatrix(beta, 1, NTERMS, v, NTERMS, NTERMS, aux2);	
 	PRECISION sum;
 		
 	for ( j = 0; j < NTERMS; j++){

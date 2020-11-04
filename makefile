@@ -276,14 +276,8 @@ interpolLineal.o:interpolLineal.c
 create_cuantic.o:create_cuantic.c
 	g++ -m64 -O3 -o $@ -c $<
 
-#multShare.o:multShare.cu
-#	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
-
 lib.o:lib.cu
 	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $< 
-
-#convolutionCuda.o:convolutionCuda.cu
-#	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
 
 convolution.o:convolution.cu
 	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
@@ -302,9 +296,6 @@ utilsFits.o:utilsFits.c
 
 svdcordic.o:svdcordic.cu
 	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
-
-#jacobi_eigenvalue.o:jacobi_eigenvalue.cu
-#	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
 
 svdcmp.o:svdcmp.cu
 	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
