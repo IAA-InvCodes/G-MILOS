@@ -8,7 +8,6 @@
 #include <cuda_runtime.h>
 #include <cufft.h>
 #include <cuComplex.h>
-#include "convolutionCuda.cuh"
 
 extern __constant__ PRECISION d_lambda_const [MAX_LAMBDA];
 //extern __constant__ PRECISION d_lambda_const_wcl  [MAX_LAMBDA];
