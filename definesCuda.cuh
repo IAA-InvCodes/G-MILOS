@@ -112,7 +112,7 @@ __device__	const PRECISION	cte_static_B_6=10.479857114260399;
 #define TAMANIO_SVD 10
 __device__ void svdcordic(PRECISION *a, int m, int n, PRECISION w[TAMANIO_SVD], PRECISION v[TAMANIO_SVD * TAMANIO_SVD],int max_iter);
 __device__ void svdcordicf(float *a, int m, int n, float w[TAMANIO_SVD], float v[TAMANIO_SVD * TAMANIO_SVD],int max_iter);
-__global__ void svdcordic_kernel(float *a, int m, int n, float w[TAMANIO_SVD], float v[TAMANIO_SVD * TAMANIO_SVD],int max_iter);
+
 
 #define NORMALIZATION_SVD 0 //1 for using normalization matrixes ONLY  in the SVD_CORDIC
 
