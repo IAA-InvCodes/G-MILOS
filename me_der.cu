@@ -15,8 +15,6 @@ __global__ void  d_funcionComponentFor(const int i,int  numl,const REAL * __rest
 __global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah, ProfilesMemory * pM,PRECISION E0,REAL cosi,REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,REAL E0_2,REAL cosi_2_E0,REAL sinis_cosa,REAL sinis_sina,REAL sindi_cosa,REAL sindi_sina,REAL cosdi_E0_2,REAL cosis_2_E0_2,REAL sinis_E0_2);
 
 
-
-
 /*
 	E00	int eta0; // 0
 	MF	int B;    

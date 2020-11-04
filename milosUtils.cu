@@ -12,7 +12,6 @@
 
 extern __constant__ int d_fix_const[11];
 extern __constant__ PRECISION d_lambda_const [MAX_LAMBDA];
-//extern __constant__ PRECISION d_lambda_const_wcl  [MAX_LAMBDA];
 extern __constant__ REAL d_weight_const [4];
 extern __constant__ REAL d_weight_sigma_const [4];
 extern __constant__ PRECISION d_wlines_const [2];
@@ -31,7 +30,7 @@ extern __constant__ int d_logclambda_const;
 __device__ void AplicaDelta(const Init_Model * model, PRECISION *  delta, Init_Model *modelout)
 {
 
-	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
+
 	PRECISION aux;
 	if (d_fix_const[0])  // ETHA 0 
 	{
@@ -48,21 +47,12 @@ __device__ void AplicaDelta(const Init_Model * model, PRECISION *  delta, Init_M
 	}
 	if (d_fix_const[2]) // VLOS
 	{
-		/*if (delta[2] > 2)
-			delta[2] = 2;
-
-		if (delta[2] < -2)
-			delta[2] = -2;		*/
 		modelout->vlos = model->vlos - delta[2];
 	}
 
 	if (d_fix_const[3]) // DOPPLER WIDTH
 	{
 
-		/*if (delta[3] > 1e-2)
-			delta[3] = 1e-2;
-		else if (delta[3] < -1e-2)
-			delta[3] = -1e-2;*/
 		modelout->dopp = model->dopp - delta[3];
 	}
 
@@ -81,10 +71,6 @@ __device__ void AplicaDelta(const Init_Model * model, PRECISION *  delta, Init_M
 	}
 	if (d_fix_const[6]) // AZIMUTH
 	{
-		/*if (delta[6] < -15)
-			delta[6] = -15;
-		else if (delta[6] > 15)
-			delta[6] = 15;*/
 		aux = delta[6];
 		if (aux < -30)
 			aux = -30;
@@ -107,7 +93,6 @@ __device__ void AplicaDelta(const Init_Model * model, PRECISION *  delta, Init_M
 __device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Model *modelout)
 {
 
-	//INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
 	float aux;
 	if (d_fix_const[0])  // ETHA 0 
 	{
@@ -124,21 +109,12 @@ __device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Mode
 	}
 	if (d_fix_const[2]) // VLOS
 	{
-		/*if (delta[2] > 2)
-			delta[2] = 2;
 
-		if (delta[2] < -2)
-			delta[2] = -2;		*/
 		modelout->vlos = model->vlos - delta[2];
 	}
 
 	if (d_fix_const[3]) // DOPPLER WIDTH
 	{
-
-		/*if (delta[3] > 1e-2)
-			delta[3] = 1e-2;
-		else if (delta[3] < -1e-2)
-			delta[3] = -1e-2;*/
 		modelout->dopp = model->dopp - delta[3];
 	}
 
@@ -157,10 +133,6 @@ __device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Mode
 	}
 	if (d_fix_const[6]) // AZIMUTH
 	{
-		/*if (delta[6] < -15)
-			delta[6] = -15;
-		else if (delta[6] > 15)
-			delta[6] = 15;*/
 		aux = delta[6];
 		if (aux < -30)
 			aux = -30;
@@ -311,19 +283,15 @@ __device__ int mil_svd(PRECISION * h, PRECISION *beta, PRECISION *delta)
 	#pragma unroll
 	for (i = 0; i < NTERMS; i++)
 	{
-		//aux2[i]= aux2[i]*((fabs(w[i]) > epsilon) ? (1/w[i]): 0.0);
 		aux2[i]= aux2[i]*((fabs(w[i]) > epsilon) ? (1/w[i]): 0.0);
 	}
 
-	//multmatrix(v, NTERMS, NTERMS, aux2, NTERMS, 1, delta);
 	for ( i = 0; i < NTERMS; i++){		
 		sum=0;
 		#pragma unroll
 		for ( k = 0;  k < NTERMS; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]  .. b[%d][%d]\n",i,j,k,i,k,k,j);
 			sum += v[i*NTERMS+k] * aux2[k];
 		}
-//				printf("Sum\n");
 		delta[i] = sum;
 
 	}
@@ -339,12 +307,10 @@ __device__ void mil_svdf(float * h, float *beta, float *delta, float * v, float 
 	int i; 
 	int j,k;
 
-	//double aux2[NTERMS];
 	float aux2[NTERMS];
 	//svdcmpf(h,NTERMS,NTERMS,w,v);
 	svdcordicf(h,TAMANIO_SVD,TAMANIO_SVD,w,v,NUM_ITER_SVD_CORDIC);
 
-	//multmatrixf(beta, 1, NTERMS, v, NTERMS, NTERMS, aux2);	
 	float sum;
 		
 	for ( j = 0; j < NTERMS; j++){
@@ -362,15 +328,13 @@ __device__ void mil_svdf(float * h, float *beta, float *delta, float * v, float 
 		aux2[i]= aux2[i]*((fabsf(w[i]) > epsilon) ? (1/w[i]): 0.0);
 	}
 
-	//multmatrixf(v, NTERMS, NTERMS, aux2, NTERMS, 1, delta);
+
 	for ( i = 0; i < NTERMS; i++){		
 		sum=0;
 		#pragma unroll
 		for ( k = 0;  k < NTERMS; k++){
-//					printf("i: %d,j:%d,k=%d .. a[%d][%d]  .. b[%d][%d]\n",i,j,k,i,k,k,j);
 			sum += v[i*NTERMS+k] * aux2[k];
 		}
-//				printf("Sum\n");
 		delta[i] = sum;
 
 	}
@@ -435,20 +399,7 @@ __host__ __device__ void estimacionesClasicas(const PRECISION  lambda_0, const P
 		}	
 	}
 
-
 	Ic = spectro[endLambda - 1]; // Continuo ultimo valor de I
-
-	/*double Icmax = spectro[0];
-	int index =0;
-	for (i = 0; i < nlambda; i++)
-	{
-		if(spectroI[i]>Ic){
-			Icmax = spectroI[i];
-			index = i;
-		}
-	}
-
-	Ic = Icmax;*/
 
 	x = 0;
 	y = 0;
@@ -492,7 +443,6 @@ __host__ __device__ void estimacionesClasicas(const PRECISION  lambda_0, const P
 	
 
 	Blos = (1 / C) * ((LM_lambda_plus - LM_lambda_minus) / 2);
-	//Vlos = (VLIGHT / (lambda_0)) * ((LM_lambda_plus + LM_lambda_minus) / 2);
 	Vlos = (VLIGHT / (lambda_0)) * ((x_vlos/y_vlos) / 2); // for now use the center without spectroV only spectroI 
 
 
@@ -603,14 +553,10 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 	int indice = threadIdx.x + blockIdx.x * blockDim.x;
 
 	if(indice<N_RTE_PARALLEL){
-		//REAL * vSigma = (REAL *) malloc((d_nlambda_const*NPARMS)*sizeof(REAL));
-		
-		//extern __shared__ float shared[];	
 
 		const REAL PARBETA_better = 5.0;
 		const REAL PARBETA_worst = 10.0;
 
-		//int iter;
 		int i,j,iter;  //, n_ghots;
 		int nfree = (d_nlambda_const * NPARMS) - NTERMS;
 		ProfilesMemory * pM = (ProfilesMemory *) malloc(sizeof(ProfilesMemory));
@@ -618,71 +564,23 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 		float v[NTERMS*NTERMS], w[NTERMS];
 		REAL covar[NTERMS * NTERMS], beta[NTERMS], delta[NTERMS];
 		REAL alpha[NTERMS * NTERMS];
-		//PRECISION covar[NTERMS * NTERMS], beta[NTERMS], delta[NTERMS];
-		//REAL * d_eq = (REAL *)&d_ei[nlambda*7];
-		
-		/*REAL * delta = (REAL *) &shared[sizeof(REAL)*blockIdx.x*NTERMS];
-		if(threadIdx.x==0){
-			printf("\n Estoy en idx bloque %d ", blockIdx.x);
-			printf("\nDireccion de memoria %d",delta);
-		}*/
 		REAL cosi,sinis, sina, cosa, sinda, cosda, sindi, cosdi,cosis_2;
 		int uuGlobal,FGlobal,HGlobal;
 
-		/*PRECISION covar[NTERMS * NTERMS];
-		PRECISION beta[NTERMS];*/
-		//REAL * covar = (REAL *)malloc(NTERMS*NTERMS*sizeof(REAL));
-		//REAL beta[NTERMS];
-		/*REAL * beta = (REAL *) malloc(NTERMS*sizeof(REAL));
-		REAL * alpha = (REAL *)malloc(NTERMS*NTERMS*sizeof(REAL));*/
-		//PRECISION * delta = (PRECISION *) malloc(NTERMS*sizeof(PRECISION));
-		//REAL * delta = (REAL *) malloc(NTERMS*sizeof(REAL));
 		REAL flambda;
 		REAL chisqr, ochisqr,chisqr0;
-		//REAL chisqr2, ochisqr2;
-
-		/*REAL chisqr0, r_ochisqr, r_chisqr;
-		REAL * ochisqr, * chisqr;
-		ochisqr = (REAL *) malloc (sizeof(REAL));
-		chisqr = (REAL *) malloc (sizeof(REAL));*/
 
 		int clanda, ind;
-		//REAL spectroLocal [30*NPARMS];
-		//printf("\nHEBRA %d EL send count pixels  %d",indice,sendCountPixels[indice]);
-		//float  * spectroInter = (float *) malloc(NPARMS*d_nlambda_const*sizeof(float));
-		//float4 * spectraAux2 = (float4 * )malloc(d_nlambda_const*sizeof(float4));
 		for(i=0;i<sendCountPixels[(numberStream*N_RTE_PARALLEL)+indice];i++){
 			
 			REAL PARBETA_FACTOR = 1.0;
 			flambda = d_ilambda_const;
 			clanda = 0;
 			iter = 0;
-			//printf("\n EL DEPSLAZAMIENTO EN EL PIXEL %d HEBRA  %d  es %d\n",i,indice, displsSpectro[indice]+(i*d_nlambda_const*NPARMS));
+
 			const float * spectroAux = spectro+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
 			float * spectraAux = spectra+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
-			/*for(j=0;j<NPARMS;j++){
-				for(h=0;h<d_nlambda_const;h++){
-					spectroInter[j+ (h*NPARMS)]  = spectroAux[h+(j*d_nlambda_const)];
-				}
-			}*/
-			/*for(j=0;j<30*NPARMS;j++){
-				spectroLocal[j] = spectroAux[j];
-				//spectra[i] = spectra_vect[NLAMBDA*NPARMS*indice + i];
-			}*/
-			//n_ghots=0;
-			
-			/*for(j=0;j<d_nlambda_const*NPARMS;j++){
-				if(spectroAux[j]<-1){ 
-					vSigma[j]= 1000000000000000000000.0;
-					n_ghots++;
-				}
-				else{
-					vSigma[j] = d_sigma_const;
-				}
-			}*/
 
-			
-			//nfree = nfree - n_ghots;
 			//Initial Model
 			Init_Model initModel,model;
 			initModel=d_initModel_const;
@@ -702,29 +600,14 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 
-			//FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);
-			
-			//covarm(d_weight_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
-			//covarm2(d_weight_const, d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 			covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 
-			/*printf("\n BETA INICIAL: ");
-			#pragma unroll
-			for (j = 0; j < NTERMS; j++){
-				//betad[j] = beta[j];
-				printf(" %e ",beta[j]);
-			}*/
-
-			//printf("\n\n ALPHA INICIAL: ");
 			#pragma unroll
 			for (j = 0; j < NTERMS * NTERMS; j++){
 				covar[j] = alpha[j];
-				//printf(" %e ",alpha[j]);
 			}
-			//ochisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
+
 			ochisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
-			//ochisqr = fchisqr2( spectraAux2, d_nlambda_const, spectroAux2, d_weight_const, d_sigma_const, nfree);
-			//ochisqr = fchisqr3( spectraAux2, d_nlambda_const, spectroAux2, d_weight_const, d_sigma_const, nfree);
 			
 			chisqr0 = ochisqr;
 			model = initModel;
@@ -737,35 +620,14 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 					ind = j * (NTERMS + 1);
 					covar[ind] = alpha[ind] * (1.0 + flambda);
 				}
-			
-				//mil_svd(covar, beta, delta);
 				mil_svdf(covar, beta, delta,v,w);
-				/*if(iter==0){
-					printf("\n AUTOVALORES \n");
-					for ( j = 0; j < NTERMS; j++){
-						printf("%f \t",w[j]);
-					}
-					printf("\nAutovectores \n");
-					int k;
-					for ( j = 0; j < NTERMS; j++){
-						for ( k = 0; k < NTERMS; k++){
-							printf("%f \t",v[k*NTERMS+j]);
-						}
-						printf("\n");
-					}
-				}
 
-				printf("\n Deltas: %f %f %f %f %f %f %f %f %f %f",delta[0],delta[1],delta[2],delta[3],delta[4],delta[5],delta[6],delta[7],delta[8],delta[9]);*/
 
-				//AplicaDelta(&initModel, delta, &model);
 				AplicaDeltaf(&initModel, delta, &model);
 				check(&model);
 				mil_sinrf(d_cuantic_const, &model, d_wlines_const, d_nlambda_const, spectraAux , d_ah_const,slight,pM->spectra_mac,pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa, &sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-				
-				//chisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
+
 				chisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
-				//chisqr = fchisqr2(spectraAux2, d_nlambda_const, spectroAux2, d_weight_const, d_sigma_const, nfree);
-				//chisqr = fchisqr3(spectraAux2, d_nlambda_const, spectroAux2, d_weight_const, d_sigma_const, nfree);
 				
 				/**************************************************************************/
 
@@ -782,13 +644,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 					initModel = model;
 					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 					//FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
-					//covarm(d_weight_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
-					//covarm2(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 					covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
-					
-					/*#pragma unroll
-					for (j = 0; j < NTERMS; j++)
-						betad[j] = beta[j];*/
 					
 					#pragma unroll
 					for (j = 0; j < NTERMS * NTERMS; j++)
@@ -801,10 +657,8 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 					for (j = 0; j < NTERMS * NTERMS; j++)
 						covar[j] = alpha[j];
 					flambda=flambda*PARBETA_worst*PARBETA_FACTOR;
-					//printf("\n%d\t%f\t increases\t______________________________",iter,flambda);
 				}
 
-				//if ((flambda > 1e+5) || (flambda < 1e-12)) 
 				if ((flambda > 1e+7) || (flambda < 1e-25))
 					clanda=1 ; // condition to exit of the loop 		
 
@@ -817,27 +671,10 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 			vChisqrf[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]] = ochisqr;
 			vInitModel[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]] = initModel;
 			vIter[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]] = iter;
-			/*printf("\n pixel %d desplazacimiento pixel  %d",indice,i+d_displsPixels[indice]);
-			printf("\neta_0               :%lf\n",vInitModel[i+d-displsPixels[indice]].eta0);
-			printf("magnetic field [G]  :%lf\n",vInitModel[i+d_displsPixels[indice]].B);
-			printf("LOS velocity[km/s]  :%lf\n",vInitModel[i+d_displsPixels[indice]].vlos);
-			printf("Doppler width [A]   :%lf\n",vInitModel[i+d_displsPixels[indice]].dopp);
-			printf("damping             :%lf\n",vInitModel[i+d_displsPixels[indice]].aa);
-			printf("gamma [deg]         :%lf\n",vInitModel[i+d_displsPixels[indice]].gm);
-			printf("phi  [deg]          :%lf\n",vInitModel[i+d_displsPixels[indice]].az);
-			printf("S_0                 :%lf\n",vInitModel[i+d_displsPixels[indice]].S0);
-			printf("S_1                 :%lf\n",vInitModel[i+d_displsPixels[indice]].S1);
-			printf("v_mac [km/s]        :%lf\n",vInitModel[i+d_displsPixels[indice]].mac);
-			printf("filling factor      :%lf\n",vInitModel[i+d_displsPixels[indice]].alfa);
-			printf("# Iterations        :%d\n",vIter[i+displsPixels[indice]]);
-			printf("\nchisqr              :%le\n",vChisqrf[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]]);*/
+
 		}
 		FreeProfilesMemoryFromDevice(pM,d_cuantic_const);
-		//free(spectroInter);
-		//free(alpha);
-		//free(delta);
-		//free(beta);
-		
+
 	}
 
 }
@@ -860,7 +697,6 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 	/************* ME DER *************************************/
 	pM->u = (REAL *) malloc(numl * sizeof(REAL));		
 	pM->dtiaux = (REAL *) malloc(numl * sizeof(REAL));
-	//pM->dtaux = (REAL *) malloc(numl * sizeof(REAL));
 	pM->etai_gp3 = (REAL *) malloc(numl * sizeof(REAL));
 	pM->ext1 = (REAL *) malloc(numl * sizeof(REAL));
 	pM->ext2 = (REAL *) malloc(numl * sizeof(REAL));
@@ -871,21 +707,12 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 	pM->BT = (REAL *) malloc(NPARMS*NTERMS * sizeof(REAL));
 
 	/************* funcionComponentFor *************************************/
-	//pM->dH_u = (REAL *) malloc(numl * sizeof(REAL));		
-	//pM->dF_u = (REAL *) malloc(numl * sizeof(REAL));
 	pM->auxCte = (REAL *) malloc(numl * sizeof(REAL));	
-	/**********************************************************/
-	//***** VARIABLES FOR FVOIGT ****************************//
-	/*pM->z = (cuDoubleComplex *) malloc (numl * sizeof(cuDoubleComplex));
-	pM->zden = (cuDoubleComplex *) malloc (numl * sizeof(cuDoubleComplex ));
-	pM->zdiv = (cuDoubleComplex *) malloc (numl * sizeof(cuDoubleComplex ));	*/
-	/*pM->z = (cuFloatComplex *) malloc (numl * sizeof(cuFloatComplex));
-	pM->zden = (cuFloatComplex *) malloc (numl * sizeof(cuFloatComplex ));
-	pM->zdiv = (cuFloatComplex *) malloc (numl * sizeof(cuFloatComplex ));	*/	
+	/**********************************************************/	
 	/********************************************************/
 	pM->resultConv = (REAL *) malloc(numl *sizeof(REAL));
 
-	//pM->spectra = (REAL *) malloc(numl * NPARMS * sizeof(REAL));
+
 	pM->spectra_mac = (REAL *) malloc(numl * NPARMS * sizeof(REAL));
 	pM->spectra_slight = (REAL *) malloc(numl * NPARMS * sizeof(REAL));
 	pM->d_spectra = (REAL *) malloc(numl * NTERMS * NPARMS * sizeof(REAL));
@@ -894,8 +721,6 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 	pM->dirConvPar = (PRECISION * )malloc((numl + numl - 1) * sizeof(PRECISION));
 	memset(pM->dirConvPar , 0, (numl + numl - 1)*sizeof(PRECISION));
 	pM->opa = (REAL *) malloc(numl*sizeof(REAL));
-	
-	//pM->d_spectra_backup = (REAL *) malloc(numl * NTERMS * NPARMS * sizeof(REAL));
 
 	pM->gp4_gp2_rhoq = (REAL *) malloc(numl * sizeof(REAL));
 	pM->gp5_gp2_rhou = (REAL *) malloc(numl * sizeof(REAL));
@@ -920,13 +745,7 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 	pM->dgp6 = (REAL *) malloc(numl * sizeof(REAL));
 	pM->d_dt = (REAL *) malloc(numl * sizeof(REAL));
 
-	/*pM->d_ei = (REAL *) malloc(numl * 7 * sizeof(REAL));
-	pM->d_eq = (REAL *) malloc(numl * 7 * sizeof(REAL));
-	pM->d_eu = (REAL *) malloc(numl * 7 * sizeof(REAL));
-	pM->d_ev = (REAL *) malloc(numl * 7 * sizeof(REAL));
-	pM->d_rq = (REAL *) malloc(numl * 7 * sizeof(REAL));
-	pM->d_ru = (REAL *) malloc(numl * 7 * sizeof(REAL));
-	pM->d_rv = (REAL *) malloc(numl * 7 * sizeof(REAL));*/
+
 	pM->dfi = (REAL *) malloc(numl * 4 * 3 * sizeof(REAL));  //DNULO
 	pM->dshi = (REAL *) malloc(numl * 4 * 3 * sizeof(REAL)); //DNULO
 
@@ -963,24 +782,11 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 
 	pM->uuGlobalInicial = (REAL *) malloc( ( numl * ((int)(cuantic.N_PI + cuantic.N_SIG * 2))) * sizeof(REAL) );
 	pM->uuGlobal = 0;
-	/*int i = 0;
-	for (i = 0; i < (int)(cuantic.N_PI + cuantic.N_SIG * 2); i++)
-	{
-		pM->uuGlobalInicial[i] = (REAL *) malloc(numl * sizeof(REAL));
-	}*/
 
 	pM->HGlobalInicial = (REAL *)  malloc(  numl * ((int)(cuantic.N_PI + cuantic.N_SIG * 2)) * sizeof(REAL *));
 	pM->HGlobal = 0;
-	/*for (i = 0; i < (int)(cuantic.N_PI + cuantic.N_SIG * 2); i++)
-	{
-		pM->HGlobalInicial[i] = (REAL *) malloc(numl * sizeof(REAL));
-	}*/
 
 	pM->FGlobalInicial = (REAL *) malloc( numl * ((int)(cuantic.N_PI + cuantic.N_SIG * 2)) * sizeof(REAL *));
-	/*for (i = 0; i < (int)(cuantic.N_PI + cuantic.N_SIG * 2); i++)
-	{
-		pM->FGlobalInicial[i] = (REAL *) malloc(numl * sizeof(REAL));
-	}*/
 	pM->FGlobal = 0;
 
 }
@@ -995,7 +801,6 @@ __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic  
 
 	free(pM->dtiaux);
 	free(pM->u);
-	//free(pM->dtaux);
 	free(pM->etai_gp3);
 	free(pM->ext1);
 	free(pM->ext2);
@@ -1006,14 +811,8 @@ __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic  
 	free(pM->BT);
 
 	/************* funcionComponentFor *************************************/
-	//free(pM->dH_u);		
-	//free(pM->dF_u);
 	free(pM->auxCte);
 	/**********************************************************/
-
-	/*free(pM->zden);
-	free(pM->zdiv);
-	free(pM->z);*/
 
 	free(pM->gp1);
 	free(pM->gp2);
@@ -1034,14 +833,6 @@ __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic  
 	free(pM->dgp6);
 	free(pM->d_dt);
 
-	/*free(pM->d_ei);
-	free(pM->d_eq);
-	free(pM->d_ev);
-	free(pM->d_eu);
-	free(pM->d_rq);
-	free(pM->d_ru);
-	free(pM->d_rv);*/
-
 	free(pM->dfi);
 	free(pM->dshi);
 
@@ -1054,7 +845,6 @@ __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic  
 	free(pM->spectra_mac);
 	free(pM->spectra_slight);
 	free(pM->d_spectra);
-	//free(pM->d_spectra_backup);
 	free(pM->opa);
 	
 
@@ -1094,21 +884,7 @@ __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic  
 	free(pM->gp5_gp2_rhou);
 	free(pM->gp6_gp2_rhov);
 
-	/*int i;
-	for (i = 0; i < (int)(cuantic.N_PI + cuantic.N_SIG * 2); i++)
-	{
-		free(pM->uuGlobalInicial[i]);
-	}
 
-	for (i = 0; i < (int)(cuantic.N_PI + cuantic.N_SIG * 2); i++)
-	{
-		free(pM->HGlobalInicial[i]);
-	}
-
-	for (i = 0; i < (int)(cuantic.N_PI + cuantic.N_SIG * 2); i++)
-	{
-		free(pM->FGlobalInicial[i]);
-	}*/
 
 	free(pM->uuGlobalInicial);
 	free(pM->HGlobalInicial);
@@ -1116,453 +892,3 @@ __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic  
 
 }
 
-
-
-/**
- * 	@param nlamda Number of nlambdas to register.
- * 
- * */
- __host__ void InitProfilesMemoryFromHost(int numl, ProfilesMemory * pM, Cuantic *cuantic){
-
-
-	/************** FGAUSS *************************************/
-	checkCuda(cudaMalloc(&pM->term, numl * sizeof(PRECISION)));
-	/************* ME DER *************************************/
-	checkCuda(cudaMalloc(&pM->dtiaux, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->u, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dtaux, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etai_gp3, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->ext1, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->ext2, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->ext3, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->ext4, numl * sizeof(REAL)));
-	/**********************************************************/
-	checkCuda(cudaMalloc(&pM->AP, NTERMS*NTERMS*NPARMS * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->BT, NPARMS*NTERMS * sizeof(REAL)));
-
-	/************* funcionComponentFor *************************************/
-	checkCuda(cudaMalloc(&pM->dH_u, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dF_u, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->auxCte, numl * sizeof(REAL)));
-	/**********************************************************/
-
-	//***** VARIABLES FOR FVOIGT ****************************//
-
-	pM->z = (cuDoubleComplex *) malloc (numl * sizeof(cuDoubleComplex));
-	pM->zden = (cuDoubleComplex *) malloc (numl * sizeof(cuDoubleComplex ));
-	pM->zdiv = (cuDoubleComplex *) malloc (numl * sizeof(cuDoubleComplex ));	
-	/*pM->z = (cuFloatComplex *) malloc (numl * sizeof(cuFloatComplex));
-	pM->zden = (cuFloatComplex *) malloc (numl * sizeof(cuFloatComplex ));
-	pM->zdiv = (cuFloatComplex *) malloc (numl * sizeof(cuFloatComplex ));		*/
-
-	/********************************************************/
-	checkCuda(cudaMalloc(&pM->resultConv, numl*sizeof(REAL) ) );
-	
-
-	//pM->spectra = malloc(numl * NPARMS * sizeof(REAL));
-	checkCuda(cudaMalloc(&pM->spectra_mac, numl * NPARMS * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->spectra_slight, numl * NPARMS * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_spectra, numl * NTERMS * NPARMS * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->GMAC, numl * sizeof(PRECISION)));
-	checkCuda(cudaMalloc(&pM->GMAC_DERIV, numl * sizeof(PRECISION)));
-	checkCuda(cudaMalloc(&pM->dirConvPar, (numl + numl - 1) * sizeof(PRECISION)));
-	checkCuda(cudaMalloc(&pM->opa, (numl) * sizeof(PRECISION)));
-
-
-	checkCuda(cudaMalloc(&pM->gp4_gp2_rhoq, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp5_gp2_rhou, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp6_gp2_rhov, numl * sizeof(REAL)));
-
-
-	checkCuda(cudaMalloc(&pM->gp1, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp2, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp3, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp4, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp5, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->gp6, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dt, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dti, numl * sizeof(REAL)));
-
-
-	checkCuda(cudaMalloc(&pM->etai_2, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dgp1, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dgp2, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dgp3, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dgp4, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dgp5, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dgp6, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_dt, numl * sizeof(REAL)));
-
-
-	checkCuda(cudaMalloc(&pM->d_ei, numl * 7 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_eq, numl * 7 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_eu, numl * 7 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_ev, numl * 7 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_rq, numl * 7 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_ru, numl * 7 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->d_rv, numl * 7 * sizeof(REAL)));
-
-	checkCuda(cudaMalloc(&pM->dfi, numl * 4 * 3 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->dshi, numl * 4 * 3 * sizeof(REAL)));
-	
-	checkCuda(cudaMalloc(&pM->fi_p, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->fi_b, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->fi_r, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->shi_p, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->shi_b, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->shi_r, numl * 2 * sizeof(REAL)));
-
-	checkCuda(cudaMalloc(&pM->etain, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etaqn, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etaun, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etavn, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhoqn, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhoun, numl * 2 * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhovn, numl * 2 * sizeof(REAL)));
-
-
-	checkCuda(cudaMalloc(&pM->etai, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etaq, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etau, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->etav, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhoq, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhoq, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhou, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->rhov, numl * sizeof(REAL)));
-
-
-	checkCuda(cudaMalloc(&pM->parcial1, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->parcial2, numl * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->parcial3, numl * sizeof(REAL)));
-
-	checkCuda(cudaMalloc(&pM->parcial3, cuantic[0].N_SIG * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->parcial3, cuantic[0].N_SIG * sizeof(REAL)));
-	checkCuda(cudaMalloc(&pM->parcial3, cuantic[0].N_PI * sizeof(REAL)));
-
-	printf("\n reservada memoria antes de intentar reservar la memoria de cuantic %d \n", ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) );
-
-	checkCuda( cudaMalloc(&pM->uuGlobalInicial,  numl * ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) * sizeof(REAL *) ));
-	
-	pM->uuGlobal = 0;
-	/*int i = 0;
-	for (i = 0; i < ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) ; i++)
-	{
-		checkCuda(cudaMalloc(&pM->uuGlobalInicial[i], numl * sizeof(REAL)));
-		printf("\n reservada memoria uuGlobalInicial %d \n",i);
-	}*/
-
-	
-	checkCuda(cudaMalloc(&pM->HGlobalInicial,  numl * ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) * sizeof(REAL *)  ));
-	pM->HGlobal = 0;
-	/*for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
-	{
-		checkCuda(cudaMalloc(&pM->HGlobalInicial[i], numl * sizeof(REAL)));
-		printf("\n reservada memoria HGlobalInicial %d \n",i);
-	}*/
-
-	
-	checkCuda(cudaMalloc(&pM->FGlobalInicial, numl * ((int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2)) * sizeof(REAL *)    ));
-	
-	/*for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
-	{
-		checkCuda(cudaMalloc(&pM->FGlobalInicial[i], numl * sizeof(REAL)));
-		printf("\n reservada memoria FGlobalInicial %d \n",i);
-	}*/
-	pM->FGlobal = 0;
-
-
-}
-
-
-__host__ void FreeProfilesMemoryFromHost(ProfilesMemory * pM,Cuantic * cuantic){
-
-	/************** FGAUSS *************************************/
-	cudaFree(pM->term);
-	/**************************************/
-	cudaFree(pM->dtiaux);
-	cudaFree(pM->u);
-	cudaFree(pM->dtaux);
-	cudaFree(pM->etai_gp3);
-	cudaFree(pM->ext1);
-	cudaFree(pM->ext2);
-	cudaFree(pM->ext3);
-	cudaFree(pM->ext4);	
-
-	cudaFree(pM->AP);
-	cudaFree(pM->BT);	
-
-	cudaFree(pM->dH_u);
-	cudaFree(pM->dF_u);
-	cudaFree(pM->auxCte);
-
-
-	cudaFree(pM->zden);
-	cudaFree(pM->zdiv);
-	cudaFree(pM->z);
-
-	cudaFree(pM->gp1);
-	cudaFree(pM->gp2);
-	cudaFree(pM->gp3);
-	cudaFree(pM->gp4);
-	cudaFree(pM->gp5);
-	cudaFree(pM->gp6);
-	cudaFree(pM->dt);
-	cudaFree(pM->dti);
-
-	cudaFree(pM->etai_2);
-
-	cudaFree(pM->dgp1);
-	cudaFree(pM->dgp2);
-	cudaFree(pM->dgp3);
-	cudaFree(pM->dgp4);
-	cudaFree(pM->dgp5);
-	cudaFree(pM->dgp6);
-	cudaFree(pM->d_dt);
-
-	cudaFree(pM->d_ei);
-	cudaFree(pM->d_eq);
-	cudaFree(pM->d_ev);
-	cudaFree(pM->d_eu);
-	cudaFree(pM->d_rq);
-	cudaFree(pM->d_ru);
-	cudaFree(pM->d_rv);
-
-	cudaFree(pM->dfi);
-	cudaFree(pM->dshi);
-
-	cudaFree(pM->resultConv);
-
-	cudaFree(pM->GMAC);
-	cudaFree(pM->GMAC_DERIV);
-	cudaFree(pM->dirConvPar);
-	cudaFree(pM->opa);
-
-	cudaFree(pM->spectra_mac);
-	cudaFree(pM->spectra_slight);
-	cudaFree(pM->d_spectra);
-
-	cudaFree(pM->fi_p);
-	cudaFree(pM->fi_b);
-	cudaFree(pM->fi_r);
-	cudaFree(pM->shi_p);
-	cudaFree(pM->shi_b);
-	cudaFree(pM->shi_r);
-
-	cudaFree(pM->etain);
-	cudaFree(pM->etaqn);
-	cudaFree(pM->etaun);
-	cudaFree(pM->etavn);
-	cudaFree(pM->rhoqn);
-	cudaFree(pM->rhoun);
-	cudaFree(pM->rhovn);
-
-	cudaFree(pM->etai);
-	cudaFree(pM->etaq);
-	cudaFree(pM->etau);
-	cudaFree(pM->etav);
-
-	cudaFree(pM->rhoq);
-	cudaFree(pM->rhou);
-	cudaFree(pM->rhov);
-
-	cudaFree(pM->parcial1);
-	cudaFree(pM->parcial2);
-	cudaFree(pM->parcial3);
-
-	cudaFree(pM->nubB);
-	cudaFree(pM->nurB);
-	cudaFree(pM->nupB);
-
-	cudaFree(pM->gp4_gp2_rhoq);
-	cudaFree(pM->gp5_gp2_rhou);
-	cudaFree(pM->gp6_gp2_rhov);
-
-	/*int i;
-	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
-	{
-		cudaFree(pM->uuGlobalInicial[i]);
-	}
-
-	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
-	{
-		cudaFree(pM->HGlobalInicial[i]);
-	}
-
-	for (i = 0; i < (int)(cuantic[0].N_PI + cuantic[0].N_SIG * 2); i++)
-	{
-		cudaFree(pM->FGlobalInicial[i]);
-	}*/
-
-	cudaFree(pM->uuGlobalInicial);
-	cudaFree(pM->HGlobalInicial);
-	cudaFree(pM->FGlobalInicial);
-
-}
-
-
-
-
-/*__device__ void createMemoryFFTFromDevice(CUFFT_Memory * cu, int  nlambda, int  usePSF){
-
-	cu->inFilterMAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-	cu->outFilterMAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-	
-	cu->inFilterMAC_DERIV = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-	cu->outFilterMAC_DERIV = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-	cu->inSpectraFwMAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-	cu->outSpectraFwMAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-	cu->inSpectraBwMAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-	cu->outSpectraBwMAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-	if(usePSF){
-		cu->inSpectraFwPSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		cu->outSpectraFwPSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-		cu->inSpectraBwPSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		cu->outSpectraBwPSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-		cu->inPSF_MAC = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		cu->fftw_G_MAC_PSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-		cu->inMulMacPSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		cu->outConvFilters = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-		cu->inPSF_MAC_DERIV = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		cu->fftw_G_MAC_DERIV_PSF = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-
-		cu->inMulMacPSFDeriv = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		cu->outConvFiltersDeriv = (cufftDoubleComplex *) malloc( nlambda * sizeof (cufftDoubleComplex));
-		
-	}
-
-	//cufftPlan1d(&cu->plan1D, nlambda, CUFFT_Z2Z, 1);
-}*/
-
-/*__device__ void  FreeMemoryFFTFromDevice(CUFFT_Memory * cu, int  usePSF){
-
-	free(cu->inFilterMAC);
-	free(cu->outFilterMAC);
-
-	free(cu->inFilterMAC_DERIV);
-	free(cu->outFilterMAC_DERIV);
-
-	free(cu->inSpectraFwMAC);
-	free(cu->outSpectraFwMAC);
-
-	free(cu->inSpectraBwMAC);
-	free(cu->outSpectraBwMAC);
-
-	if(usePSF){
-		free(cu->inSpectraFwPSF);
-		free(cu->outSpectraFwPSF);
-
-		free(cu->inSpectraBwPSF);
-		free(cu->outSpectraBwPSF);
-
-		free(cu->inPSF_MAC);
-		free(cu->fftw_G_MAC_PSF);
-
-		free(cu->inMulMacPSF);
-		free(cu->outConvFilters);
-
-		free(cu->inPSF_MAC_DERIV);
-		free(cu->fftw_G_MAC_DERIV_PSF);
-
-		free(cu->inMulMacPSFDeriv);
-		free(cu->outConvFiltersDeriv);
-
-	}
-	//cufftDestroy(cu->plan1D);
-}*/
-
-/*__host__ void createMemoryFFTFromHost(CUFFT_Memory * cu, int  nlambda, int usePSF){
-
-	checkCuda(cudaMalloc(&cu->inFilterMAC, nlambda * sizeof (cufftDoubleComplex)));
-	checkCuda(cudaMalloc(&cu->outFilterMAC, nlambda * sizeof (cufftDoubleComplex)));
-
-	checkCuda(cudaMalloc(&cu->inFilterMAC_DERIV, nlambda * sizeof (cufftDoubleComplex)));
-	checkCuda(cudaMalloc(&cu->outFilterMAC_DERIV, nlambda * sizeof (cufftDoubleComplex)));
-	
-	checkCuda(cudaMalloc(&cu->inSpectraFwMAC, nlambda * sizeof (cufftDoubleComplex)));
-	checkCuda(cudaMalloc(&cu->outSpectraFwMAC, nlambda * sizeof (cufftDoubleComplex)));
-
-	checkCuda(cudaMalloc(&cu->inSpectraBwMAC, nlambda * sizeof (cufftDoubleComplex)));
-	checkCuda(cudaMalloc(&cu->outSpectraBwMAC, nlambda * sizeof (cufftDoubleComplex)));
-
-	if(usePSF){
-
-		checkCuda(cudaMalloc(&cu->inSpectraFwPSF, nlambda * sizeof (cufftDoubleComplex)));
-		checkCuda(cudaMalloc(&cu->outSpectraFwPSF, nlambda * sizeof (cufftDoubleComplex)));
-
-		checkCuda(cudaMalloc(&cu->inSpectraBwPSF, nlambda * sizeof (cufftDoubleComplex)));
-		checkCuda(cudaMalloc(&cu->outSpectraBwPSF, nlambda * sizeof (cufftDoubleComplex)));
-
-		checkCuda(cudaMalloc(&cu->inPSF_MAC, nlambda * sizeof (cufftDoubleComplex)));
-		checkCuda(cudaMalloc(&cu->fftw_G_MAC_PSF, nlambda * sizeof (cufftDoubleComplex)));
-
-		checkCuda(cudaMalloc(&cu->inMulMacPSF, nlambda * sizeof (cufftDoubleComplex)));
-		checkCuda(cudaMalloc(&cu->outConvFilters, nlambda * sizeof (cufftDoubleComplex)));
-
-		checkCuda(cudaMalloc(&cu->inPSF_MAC_DERIV, nlambda * sizeof (cufftDoubleComplex)));
-		checkCuda(cudaMalloc(&cu->fftw_G_MAC_DERIV_PSF, nlambda * sizeof (cufftDoubleComplex)));
-
-		checkCuda(cudaMalloc(&cu->inMulMacPSFDeriv, nlambda * sizeof (cufftDoubleComplex)));
-		checkCuda(cudaMalloc(&cu->outConvFiltersDeriv, nlambda * sizeof (cufftDoubleComplex)));
-		
-	}
-
-	cufftPlan1d(&cu->plan1D, nlambda, CUFFT_Z2Z, 1);
-}*/
-
-/*__host__ void  FreeMemoryFFTFromHost(CUFFT_Memory * cu, int usePSF){
-
-	cudaFree(cu->inFilterMAC);
-	cudaFree(cu->outFilterMAC);
-
-	cudaFree(cu->inFilterMAC_DERIV);
-	cudaFree(cu->outFilterMAC_DERIV);
-
-	cudaFree(cu->inSpectraFwMAC);
-	cudaFree(cu->outSpectraFwMAC);
-
-	cudaFree(cu->inSpectraBwMAC);
-	cudaFree(cu->outSpectraBwMAC);
-
-	if(usePSF){
-		cudaFree(cu->inSpectraFwPSF);
-		cudaFree(cu->outSpectraFwPSF);
-
-		cudaFree(cu->inSpectraBwPSF);
-		cudaFree(cu->outSpectraBwPSF);
-
-		cudaFree(cu->inPSF_MAC);
-		cudaFree(cu->fftw_G_MAC_PSF);
-
-		cudaFree(cu->inMulMacPSF);
-		cudaFree(cu->outConvFilters);
-
-		cudaFree(cu->inPSF_MAC_DERIV);
-		cudaFree(cu->fftw_G_MAC_DERIV_PSF);
-
-		cudaFree(cu->inMulMacPSFDeriv);
-		cudaFree(cu->outConvFiltersDeriv);
-
-	}
-	cufftDestroy(cu->plan1D);
-}*/
-
-
-
-/*__global__ void load_sigma(__constant__ REAL * __restrict__ spectro, REAL * __restrict__ vSigma, int * n_ghots){
-	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	if(spectro[i]<-1){ 
-		vSigma[i]= 1000000000000000000000.0;
-		n_ghots++;
-	}
-	else{
-		vSigma[i] = d_sigma_const;
-	}
-
-}*/

@@ -8,6 +8,9 @@
  * 
  */
 __device__ void AplicaDelta(const Init_Model * model, PRECISION * delta, Init_Model *modelout);
+/**
+*
+*/
 __device__ void AplicaDeltaf(const Init_Model * model, float * delta, Init_Model *modelout);
 /**
  * 
@@ -23,7 +26,6 @@ __device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, co
  */
 __device__ int mil_svd(PRECISION * h, PRECISION *beta, PRECISION *delta);
 
-__global__ void d_mil_svd(const PRECISION *  h, PRECISION *beta, PRECISION *delta);
 
 /*
 *
@@ -36,12 +38,6 @@ __global__ void d_mil_svd(const PRECISION *  h, PRECISION *beta, PRECISION *delt
 * nlambda :   numero de muesras
 * spectro :   vector [I,Q,U,V]
 * initModel:  Modelo de atmosfera a ser modificado
-*
-*
-*
-* @Author: Juan Pedro Cobos Carrascosa (IAA-CSIC)
-*		   jpedro@iaa.es
-* @Date:  Nov. 2011
 *
 */
 __host__ __device__ void estimacionesClasicas(const PRECISION  lambda_0, const PRECISION * lambda, const int  nlambda, const float *  spectro, Init_Model *initModel, const int forInitialUse, const Cuantic *  cuantic);
@@ -68,62 +64,8 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 
 
 /**
- * 	@param nlamda Number of nlambdas to register.
- * 
- * */
-__host__ void InitProfilesMemoryFromHost(int numl, ProfilesMemory * pM, Cuantic *cuantic);
-
-/**
  * @param pM --> pointer to memory reservation of profiles memory 
  * @param cuantic --> pointer to array with cuantic numbers. 
  * 
  * */
 __device__ void FreeProfilesMemoryFromDevice(ProfilesMemory * pM,const Cuantic   cuantic);
-
-
-/**
- * @param pM --> pointer to memory reservation of profiles memory 
- * @param cuantic --> pointer to array with cuantic numbers. 
- * 
- * */
-__host__ void FreeProfilesMemoryFromHost(ProfilesMemory * pM,Cuantic * cuantic);
-
-/**
- * @param cu: pointer to CUFFT_Memmory 
- * @param nlambda: pointer to value of num of lanbdas
- * @param usePSF: indicate if we will use PSF or not. 
- * 
- * Method to initialize memory reservation in device to store CUFFT. Called from DEVICE
- * */
-__device__ void createMemoryFFTFromDevice(CUFFT_Memory * cu, int  nlambda, int  usePSF);
-
-
-/**
- * @param cu: pointer to CUFFT_Memmory
- * @param usePSF: inticate if memory necessary for psf has been reserved  
- * 
- * Free memory reserved for CUFFT_MEMORY. Called from DEVICE
- * */
-
-__device__ void FreeMemoryFFTFromDevice(CUFFT_Memory * cu, int  usePSF);
-
-
-
-/**
- * @param cu: pointer to CUFFT_Memmory 
- * @param nlambda: pointer to value of num of lanbdas
- * @param usePSF: indicate if we will use PSF or not. 
- * 
- * Method to initialize memory reservation in device to store CUFFT. Called from HOST
- * */
-__host__ void createMemoryFFTFromHost(CUFFT_Memory * cu, int  nlambda, int  usePSF);
-
-
-/**
- * @param cu: pointer to CUFFT_Memmory
- * @param usePSF: inticate if memory necessary for psf has been reserved  
- * 
- * Free memory reserved for CUFFT_MEMORY. Called from HOST
- * */
-
-__host__ void FreeMemoryFFTFromHost(CUFFT_Memory * cu, int  usePSF);
