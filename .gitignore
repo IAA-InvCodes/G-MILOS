@@ -1,0 +1,5 @@
+
+*.o
+
+milos
+.vscode/settings.json
