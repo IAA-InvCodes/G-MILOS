@@ -159,5 +159,5 @@ The sequential program must be controlled with a configuration file of type **.t
 The program must be executed by passing the configuration file as a parameter:
 
 ```
-./gmilos run/pmilos.mtrol
+./gmilos run/gmilos.mtrol
 ```
