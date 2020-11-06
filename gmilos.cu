@@ -52,7 +52,6 @@
 
 __constant__ int d_fix_const[11];
 __constant__ PRECISION d_lambda_const  [MAX_LAMBDA];
-//__constant__ PRECISION d_lambda_const_wcl  [MAX_LAMBDA];
 __constant__ PRECISION d_psfFunction_const  [MAX_LAMBDA];
 __constant__ REAL d_weight_const [4];
 __constant__ REAL d_weight_sigma_const [4];

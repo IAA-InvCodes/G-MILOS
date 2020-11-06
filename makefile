@@ -268,7 +268,7 @@ OBJ= obj
 # Target rules
 all: build
 
-build: milos
+build: gmilos
 
 interpolLineal.o:interpolLineal.c
 	g++ -m64 -O3  -o $@ -c $<
@@ -309,10 +309,10 @@ me_der.o:me_der.cu
 milosUtils.o:milosUtils.cu
 	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc $<
 
-milos.o:milos.cu 
+gmilos.o:gmilos.cu 
 	$(NVCC) $(ALL_CCFLAGS) $(GENCODE_FLAGS) -o $@ -dc -w $<
 
-milos:  interpolLineal.o create_cuantic.o lib.o convolution.o fgaussC.o fgauss.o readConfig.o utilsFits.o  svdcordic.o svdcmp.o mil_sinrf.o me_der.o milosUtils.o  milos.o 
+gmilos:  interpolLineal.o create_cuantic.o lib.o convolution.o fgaussC.o fgauss.o readConfig.o utilsFits.o  svdcordic.o svdcmp.o mil_sinrf.o me_der.o milosUtils.o  gmilos.o 
 	$(NVCC) $(ALL_LDFLAGS) $(GENCODE_FLAGS) -o $@ $+ $(LIBRARIES) $(LDLIBS)
 
 clean:
