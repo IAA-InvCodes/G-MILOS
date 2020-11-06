@@ -2,7 +2,7 @@
 
 ## Description 
 
-This repository contains an implementacion of MILOS implemented in CUDA and will get you a copy of the project up and running on your local machine for development and testing purposes. An extended user manual can be found [here](gmilos_manual.pdf). But in this page you can find a quick overview about how to install the necessary libraries, the types of files used and how to use the program. In this manual we will assume that CUDA is installed on the system. The oldest version of CUDA supported by the code is 3.5 . 
+This repository contains an implementacion of MILOS using CUDA and will get you a copy of the project up and running on your local machine for development and testing purposes. An extended user manual can be found [here](gmilos_manual.pdf). But in this page you can find a quick overview about how to install the necessary libraries, the types of files used and how to use the program. In this manual we will assume that CUDA is installed on the system. The oldest version of CUDA supported by the code is 3.5 . 
 
 
 ## Requeriments 
