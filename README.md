@@ -142,7 +142,7 @@ In order to deploy the application, it must first be compiled on the target mach
 
 * Compile and create executable **gmilos** 
 ```
-make gmilos
+make 
 ```
 * Clean objects files and executable files. 
 ```
