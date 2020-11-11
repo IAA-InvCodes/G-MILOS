@@ -40,3 +40,5 @@ Continuum contrast           :                  ! Not used for the moment
 Initial diagonal element     :0.1               ! (DEFAULT value: 1.e-1)
 Use FFT for convolutions     :0                 ! (0 or blank = use direct convolution, 1 = use FFT)
 Diagonal element acceleration :0                ! (0 or blank=no, 1=yes)
+Number of Streams            :4				    ! (number of streams to overlap GPU process)
+Device number                :0				    ! (0 or blank=0) number of device to use in local machine for inversion
