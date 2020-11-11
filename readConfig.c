@@ -739,6 +739,8 @@ void loadInitialValues(ConfigControl * configControlFile){
 	configControlFile->useFFT = 0; // by default direct convolution
 
 	configControlFile->logclambda = 0; // by default don't use fast convergence
+	configControlFile->numStreams = 2; // USE BY DEFULT 2 STREAMS
+	configControlFile->deviceID = 0; // GPU DEVICE DEFAULT ID
 }
 
 int readParametersFileInput(char * fileParameters,  ConfigControl * trolConfig, int printLog){
@@ -2063,6 +2065,29 @@ int readTrolFile(char * fileParameters,  ConfigControl * trolConfig, int printLo
 	//if(printLog) printf("Save Synthesis Profile to apply: %d\n", trolConfig->SaveSynthesisAdjusted);
 	if(printLog) printf("%s", LINE);
 
+	/*************************** NUMBER OF STREAMS ********************************************/
+	
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;						
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, &trolConfig->numStreams,comment);
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param numStreams. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+	if(printLog) printf("%s", LINE);
+
+	/*************************** NUMBER OF DEVICE ********************************************/
+	
+	returnLine = fgets(LINE,4096,fReadParameters);
+	if(returnLine == NULL) return 0;						
+	rfscanf = sscanf(LINE,"%99[^:]:%i%99[^!]!",name, &trolConfig->deviceID,comment);
+	if(rfscanf ==0 || rfscanf == EOF){
+		printf("Error reading the file of parameters, param deviceID. Please verify it. \n");
+		printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", fileParameters);
+		return 0;		
+	}
+	if(printLog) printf("%s", LINE);
 
 	return 1;
 

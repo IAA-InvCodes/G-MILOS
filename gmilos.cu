@@ -158,6 +158,8 @@ int main(int argc, char **argv)
 	nameInputFileLines = configCrontrolFile.AtomicParametersFile;
 	nameInputFilePSF = configCrontrolFile.PSFFile;
 	
+
+	cudaSetDevice(configCrontrolFile.deviceID);
 	/***************** READ INIT MODEL ********************************/
 	if(configCrontrolFile.InitialGuessModel[0]!='\0' && !readInitialModel(&INITIAL_MODEL,configCrontrolFile.InitialGuessModel)){
 		printf("\nERROR READING GUESS MODEL 1 FILE\n");
@@ -797,9 +799,9 @@ int main(int argc, char **argv)
 			int dev = 0, numberDevices = 0;
 			cudaGetDeviceCount(&numberDevices);
 			printf("\n Number of Devices in the system: %d\n",numberDevices);
-			cudaSetDevice(dev);
+			//cudaSetDevice(dev);
 			cudaDeviceProp deviceProp;
-			cudaGetDeviceProperties(&deviceProp, dev);
+			cudaGetDeviceProperties(&deviceProp, configCrontrolFile.deviceID);
 			printf("\nDevice %d: \"%s\"\n", dev, deviceProp.name);
         	printf("  CUDA Capability Major/Minor version number:    %d.%d\n", deviceProp.major, deviceProp.minor);
 	        char msg[256];
@@ -846,7 +848,7 @@ int main(int argc, char **argv)
 				int minGridSize; // The minimum grid size needed to achieve the maximum occupancy for a full device launch
 				int gridSize; // The actual
 				int threadPerBlock=32;
-				int NSTREAMS = 4;
+				int NSTREAMS = configCrontrolFile.numStreams;
 				// function to get minGridSize and blockSize for function lm_mils with no limite of share memory and no limit of maximum block size
 				/*cudaOccupancyMaxPotentialBlockSize(&minGridSize,&blockSize,(void*)lm_mils,threadPerBlock,fitsImage->numPixels); 
 				gridSize = (fitsImage->numPixels + blockSize - 1) / blockSize;*/

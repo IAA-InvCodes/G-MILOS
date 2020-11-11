@@ -287,6 +287,8 @@ struct CONFIG_CONTROL{
 	int t1;
 	int t2;
 	int logclambda;
+	int numStreams; 
+	int deviceID;
 };
 
 typedef struct CONFIG_CONTROL ConfigControl;
