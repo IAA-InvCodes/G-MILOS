@@ -44,15 +44,10 @@ __global__ void d_direct_convolution(REAL * __restrict__ x,const double * __rest
 {
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	
-
 	extern __shared__ double d_dirConvPar[];
 	int j;
-
 	d_dirConvPar[i] = x[i];
 	__syncthreads();
-
-	// vamos a tomar solo la convolucion central
 	double aux = 0;
 	int N_start_point=i-(nh/2);
 	#pragma unroll
@@ -76,12 +71,10 @@ __global__ void d_direct_convolution_ic(REAL * __restrict__ x, const double * __
 {
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	
 	extern __shared__ double d_dirConvPar[];
 	int j;
 	d_dirConvPar[i] = Ic - x[i];
 	__syncthreads();
-	// vamos a tomar solo la convolucion central
 	double aux = 0;
 	int N_start_point=i-(nh/2);
 	#pragma unroll
@@ -122,9 +115,7 @@ __global__ void d_convCircular(REAL * __restrict__ x, const double * __restrict_
 	}
 	else{
 		result[i-(size/2)] = aux;		
-	}
-
-	
+	}	
 }
 
 __device__ void direct_convolution_double(PRECISION * __restrict__ x, int nx, const double * __restrict__ h, int nh,PRECISION  * __restrict__ dirConvPar)
@@ -275,7 +266,6 @@ __device__ void convCircular(const REAL * __restrict__ x, const double * __restr
 			else
 				aux += h[j] * x[mod];
 		}
-		
 		if(i < size/2){
 			resultConv[startShift+i] = aux;
 		}
@@ -283,7 +273,6 @@ __device__ void convCircular(const REAL * __restrict__ x, const double * __restr
 			resultConv[i-(size/2)] = aux;		
 		}
 	}
-
 	for(i=0;i<size;i++){
 		result[i] = resultConv[i];
 	}
