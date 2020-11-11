@@ -793,7 +793,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				printf("Detected %d CUDA Capable device(s)\n", deviceCount);
+				printf("Detected %d CUDA Capable device(s). Using device with ID %d\n", deviceCount,configCrontrolFile.deviceID);
 			}
 
 			int dev = 0, numberDevices = 0;
