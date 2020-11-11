@@ -798,7 +798,7 @@ int main(int argc, char **argv)
 
 			int numberDevices = 0;
 			cudaGetDeviceCount(&numberDevices);
-			printf("\n Number of Devices in the system: %d. Using device with ID %d \n",numberDevices, configCrontrolFile.deviceID);
+			//printf("\n Number of Devices in the system: %d. Using device with ID %d \n",numberDevices, configCrontrolFile.deviceID);
 			//cudaSetDevice(dev);
 			cudaDeviceProp deviceProp;
 			cudaGetDeviceProperties(&deviceProp, configCrontrolFile.deviceID);
