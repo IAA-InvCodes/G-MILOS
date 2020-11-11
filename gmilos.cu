@@ -796,13 +796,13 @@ int main(int argc, char **argv)
 				printf("Detected %d CUDA Capable device(s). Using device with ID %d\n", deviceCount,configCrontrolFile.deviceID);
 			}
 
-			int dev = 0, numberDevices = 0;
+			int numberDevices = 0;
 			cudaGetDeviceCount(&numberDevices);
-			printf("\n Number of Devices in the system: %d\n",numberDevices);
+			printf("\n Number of Devices in the system: %d. Using device with ID %d \n",numberDevices, configCrontrolFile.deviceID);
 			//cudaSetDevice(dev);
 			cudaDeviceProp deviceProp;
 			cudaGetDeviceProperties(&deviceProp, configCrontrolFile.deviceID);
-			printf("\nDevice %d: \"%s\"\n", dev, deviceProp.name);
+			printf("\nDevice %d: \"%s\"\n", configCrontrolFile.deviceID, deviceProp.name);
         	printf("  CUDA Capability Major/Minor version number:    %d.%d\n", deviceProp.major, deviceProp.minor);
 	        char msg[256];
 			sprintf(msg, "  Total amount of global memory:                 %.0f MBytes (%llu bytes)\n",
