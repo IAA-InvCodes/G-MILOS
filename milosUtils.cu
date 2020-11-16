@@ -598,7 +598,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 
 			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-
+			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);
 			covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 
 			#pragma unroll
@@ -642,7 +642,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 					flambda=flambda/(PARBETA_better*PARBETA_FACTOR);
 					initModel = model;
 					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-					//FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
+					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
 					covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 					
 					#pragma unroll
