@@ -90,7 +90,7 @@ __device__ void AplicaDelta(const Init_Model * model, PRECISION *  delta, Init_M
 		modelout->alfa = model->alfa - delta[10];
 }
 
-__device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Model *modelout)
+__device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Model *modelout,const int nterms)
 {
 
 	float aux;
@@ -147,8 +147,15 @@ __device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Mode
 	if (d_fix_const[9]){
 		modelout->mac = model->mac - delta[9]; //9
 	}
-	if (d_fix_const[10])
-		modelout->alfa = model->alfa - delta[10];
+	if (d_fix_const[10]){
+		//modelout->alfa = model->alfa - delta[10];
+		if(nterms==NTERMS_11)
+			modelout->alfa = model->alfa - delta[10];
+		else
+		{
+			modelout->alfa = model->alfa - delta[9];
+		}
+	}
 }
 __device__ int check(Init_Model *model)
 {
