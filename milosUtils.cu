@@ -245,11 +245,29 @@ __device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, co
 {
 
 	int In, j,i;
-	for (In = 0; In < nterms; In++)
-		if (d_fix_const[In] == 0)
-			for (j = 0; j < NPARMS; j++)
-				for (i = 0; i < nlambda; i++)
-					d_spectra[i + nlambda * In + j * nlambda * nterms] = 0;
+	if(nterms==NTERMS_11){
+		for (In = 0; In < nterms; In++)
+			if (d_fix_const[In] == 0)
+				for (j = 0; j < NPARMS; j++)
+					for (i = 0; i < nlambda; i++)
+						d_spectra[i + nlambda * In + j * nlambda * nterms] = 0;
+	}
+	else{
+		for (In = 0; In < nterms; In++){
+			if(In<9){
+				if (d_fix_const[In] == 0)
+					for (j = 0; j < NPARMS; j++)
+						for (i = 0; i < nlambda; i++)
+							d_spectra[i + nlambda * In + j * nlambda * nterms] = 0;
+			}
+			else{
+				if (d_fix_const[10] == 0) // fix to zero filling factor
+					for (j = 0; j < NPARMS; j++)
+						for (i = 0; i < nlambda; i++)
+							d_spectra[i + nlambda * In + j * nlambda * nterms] = 0;				
+			}
+		}
+	}
 					
 }
 
