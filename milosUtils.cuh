@@ -53,8 +53,11 @@ __host__ __device__ void estimacionesClasicas(const PRECISION  lambda_0, const P
 
 __global__ void lm_mils(const float * __restrict__ spectro,
 				Init_Model * vInitModel, float * vChisqrf,
-				const REAL *  slight, int * vIter,float * spectra, const int * __restrict__ displsSpectro, const int * __restrict__  sendCountPixels, const int * __restrict__ displsPixels, const int N_RTE_PARALLEL, const int numberStream);
+				REAL *  slight, int * vIter,float * spectra, const int * __restrict__ displsSpectro, const int * __restrict__  sendCountPixels, const int * __restrict__ displsPixels, const int N_RTE_PARALLEL, const int numberStream, const int mapStrayLight);
 
+__global__ void lm_mils_11(const float * __restrict__ spectro,
+	Init_Model * vInitModel, float * vChisqrf,
+	REAL *  slight, int * vIter,float * spectra, const int * __restrict__ displsSpectro, const int * __restrict__  sendCountPixels, const int * __restrict__ displsPixels, const int N_RTE_PARALLEL, const int numberStream, const int mapStrayLight);
 
 /**
  * 	@param nlamda Number of nlambdas to register.

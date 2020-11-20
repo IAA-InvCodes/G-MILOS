@@ -546,7 +546,7 @@ __host__ __device__ void estimacionesClasicas(const PRECISION  lambda_0, const P
  * spectra : IQUV por filas, longitud ny=nlambda
  */
 
-__global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitModel, float * vChisqrf, const REAL *  slight, int * vIter, float * spectra, const int * __restrict__ displsSpectro, const int * __restrict__ sendCountPixels, const int * __restrict__ displsPixels, const int N_RTE_PARALLEL, const int numberStream)
+__global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitModel, float * vChisqrf, REAL *  slight, int * vIter, float * spectra, const int * __restrict__ displsSpectro, const int * __restrict__ sendCountPixels, const int * __restrict__ displsPixels, const int N_RTE_PARALLEL, const int numberStream, const int mapStrayLight)
 {
 
 	int indice = threadIdx.x + blockIdx.x * blockDim.x;
@@ -579,7 +579,13 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 
 			const float * spectroAux = spectro+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
 			float * spectraAux = spectra+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
-
+			float * slight_pixel; 
+			if(mapStrayLight){
+				slight_pixel = slight+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
+			}
+			else{
+				slight_pixel = slight;
+			}
 			//Initial Model
 			Init_Model initModel,model;
 			initModel=d_initModel_const;
@@ -596,8 +602,8 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 			if (isnan(initModel.az))
 				initModel.az = 1;		
 
-			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight_pixel,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);
 			covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 
@@ -624,7 +630,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 
 				AplicaDeltaf(&initModel, delta, &model);
 				check(&model);
-				mil_sinrf(d_cuantic_const, &model, d_wlines_const, d_nlambda_const, spectraAux , d_ah_const,slight,pM->spectra_mac,pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa, &sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+				mil_sinrf(d_cuantic_const, &model, d_wlines_const, d_nlambda_const, spectraAux , d_ah_const,slight_pixel,pM->spectra_mac,pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa, &sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 
 				chisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
 				
@@ -641,7 +647,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 					
 					flambda=flambda/(PARBETA_better*PARBETA_FACTOR);
 					initModel = model;
-					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
 					covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
 					
@@ -678,6 +684,147 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 
 }
 
+
+__global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInitModel, float * vChisqrf, REAL *  slight, int * vIter, float * spectra, const int * __restrict__ displsSpectro, const int * __restrict__ sendCountPixels, const int * __restrict__ displsPixels, const int N_RTE_PARALLEL, const int numberStream, const int mapStrayLight)
+{
+
+	int indice = threadIdx.x + blockIdx.x * blockDim.x;
+
+	if(indice<N_RTE_PARALLEL){
+
+		const REAL PARBETA_better = 5.0;
+		const REAL PARBETA_worst = 10.0;
+
+		int i,j,iter;  //, n_ghots;
+		int nfree = (d_nlambda_const * NPARMS) - NTERMS;
+		ProfilesMemory * pM = (ProfilesMemory *) malloc(sizeof(ProfilesMemory));
+		InitProfilesMemoryFromDevice(d_nlambda_const,pM,d_cuantic_const);
+		
+		
+		PRECISION covar[NTERMS * NTERMS], beta[NTERMS], delta[NTERMS];
+		REAL alpha[NTERMS * NTERMS];
+		REAL cosi,sinis, sina, cosa, sinda, cosda, sindi, cosdi,cosis_2;
+		int uuGlobal,FGlobal,HGlobal;
+
+		REAL flambda;
+		REAL chisqr, ochisqr,chisqr0;
+
+		int clanda, ind;
+		for(i=0;i<sendCountPixels[(numberStream*N_RTE_PARALLEL)+indice];i++){
+			
+			REAL PARBETA_FACTOR = 1.0;
+			flambda = d_ilambda_const;
+			clanda = 0;
+			iter = 0;
+
+			const float * spectroAux = spectro+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
+			float * spectraAux = spectra+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
+			float * slight_pixel; 
+			if(mapStrayLight){
+				slight_pixel = slight+displsSpectro[(numberStream*N_RTE_PARALLEL)+indice]+(i*d_nlambda_const*NPARMS);
+			}
+			else{
+				slight_pixel = slight;
+			}
+			//Initial Model
+			Init_Model initModel,model;
+			initModel=d_initModel_const;
+			
+			// CLASSICAL ESTIMATES TO GET B, GAMMA
+			estimacionesClasicas(d_wlines_const[1], d_lambda_const, d_nlambda_const, spectroAux, &initModel,1,&d_cuantic_const);
+			
+			if (isnan(initModel.B))
+				initModel.B = 1;
+			if (isnan(initModel.vlos))
+				initModel.vlos = 1e-3;
+			if (isnan(initModel.gm))
+				initModel.gm = 1;						
+			if (isnan(initModel.az))
+				initModel.az = 1;		
+
+			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight_pixel,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);
+			covarm(d_weight_const, d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
+			
+
+			#pragma unroll
+			for (j = 0; j < NTERMS * NTERMS; j++){
+				covar[j] = alpha[j];
+			}
+
+			ochisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
+			
+			chisqr0 = ochisqr;
+			model = initModel;
+			
+			do
+			{
+				// CHANGE VALUES OF DIAGONAL 
+				for (j = 0; j < NTERMS; j++)
+				{
+					ind = j * (NTERMS + 1);
+					covar[ind] = alpha[ind] * (1.0 + flambda);
+				}
+				mil_svd(covar, beta, delta);
+				
+
+
+				AplicaDelta(&initModel, delta, &model);
+				check(&model);
+				mil_sinrf(d_cuantic_const, &model, d_wlines_const, d_nlambda_const, spectraAux , d_ah_const,slight_pixel,pM->spectra_mac,pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa, &sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+
+				chisqr = fchisqr(spectraAux, d_nlambda_const, spectroAux, d_weight_const, d_sigma_const, nfree);
+				
+				/**************************************************************************/
+
+				//printf("\n CHISQR EN LA ITERACION %d,: %e", iter,chisqr);
+				
+				/**************************************************************************/
+				if ((FABS(((ochisqr)-(chisqr))*100/(chisqr)) < d_toplim_const) || ((chisqr) < 0.0001)) // condition to exit of the loop 
+					clanda = 1;		
+				if ((chisqr) - (ochisqr) < 0.)
+				{
+
+					
+					flambda=flambda/(PARBETA_better*PARBETA_FACTOR);
+					initModel = model;
+					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
+					covarm(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM);
+					
+					#pragma unroll
+					for (j = 0; j < NTERMS * NTERMS; j++)
+						covar[j] = alpha[j];
+					ochisqr = chisqr;
+				}
+				else
+				{
+					#pragma unroll
+					for (j = 0; j < NTERMS * NTERMS; j++)
+						covar[j] = alpha[j];
+					flambda=flambda*PARBETA_worst*PARBETA_FACTOR;
+				}
+
+				if ((flambda > 1e+7) || (flambda < 1e-25))
+					clanda=1 ; // condition to exit of the loop 		
+
+				iter++;
+				if(d_logclambda_const) PARBETA_FACTOR = log10f(chisqr)/log10f(chisqr0);
+
+			} while (iter < d_miter_const && !clanda);
+
+ 
+			vChisqrf[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]] = ochisqr;
+			vInitModel[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]] = initModel;
+			vIter[i+displsPixels[(numberStream*N_RTE_PARALLEL)+indice]] = iter;
+
+		}
+		FreeProfilesMemoryFromDevice(pM,d_cuantic_const);
+
+	}
+
+}
 
 
 /**

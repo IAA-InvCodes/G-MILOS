@@ -109,7 +109,7 @@ __device__ void mil_sinrf(const Cuantic cuantic, Init_Model *initModel, const PR
 		// FOR USE CIRCULAR CONVOLUTION 
 
 		for (i = 0; i < NPARMS; i++){
-			d_convCircular<<<1,nlambda,nlambda*sizeof(REAL)+nlambda*sizeof(double)>>>(spectra + nlambda * i, pM->GMAC, nlambda,spectra + nlambda * i);	
+			d_convCircular<<<1,nlambda>>>(spectra + nlambda * i, pM->GMAC, nlambda,spectra + nlambda * i);	
 			cudaDeviceSynchronize();
 		}
 

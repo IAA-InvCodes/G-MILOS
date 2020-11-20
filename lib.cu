@@ -15,40 +15,53 @@ return
 
 */
 
-__device__ int covarm(const REAL * __restrict__ w,const REAL sig,const float * __restrict__ spectro,int  nspectro,const REAL * __restrict__ spectra,const REAL * __restrict__ d_spectra,PRECISION *beta,REAL *alpha,ProfilesMemory * pM){	
+__device__ void covarm(const REAL * __restrict__ w,const REAL * __restrict__ w_d,const REAL sig,const float * __restrict__ spectro,int  nspectro,const REAL * __restrict__ spectra,const REAL * __restrict__ d_spectra,PRECISION *beta,REAL *alpha,ProfilesMemory * pM){	
 	
-	int j,i;
+
+	int j,i,k;
+	int h;
+	REAL sum,sum2;
 	REAL *BTaux,*APaux;
 
 	for(j=0;j<NPARMS;j++){
-		
-		if(nspectro%2==0){
-			for(i=0;i<nspectro;i=i+2){
-				pM->opa[i]= w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]);
-				pM->opa[i+1]= w[j]*(spectra[(i+1)+nspectro*j]-spectro[(i+1)+nspectro*j]);
-			}						
-		}
-		else{
-			for(i=0;i<nspectro-1;i=i+2){
-				pM->opa[i]= w[j]*(spectra[i+nspectro*j]-spectro[i+nspectro*j]);
-				pM->opa[i+1]= w[j]*(spectra[(i+1)+nspectro*j]-spectro[(i+1)+nspectro*j]);
-			}			
-			pM->opa[nspectro-1]= w[j]*(spectra[(nspectro-1)+nspectro*j]-spectro[(nspectro-1)+nspectro*j]);
-		}	
-
+		REAL w_aux = w[j];
+		REAL w_d_aux = w_d[j];
 		BTaux=pM->BT+(j*NTERMS);
 		APaux=pM->AP+(j*NTERMS*NTERMS);
-		
-		multmatrixIDLValue(pM->opa,nspectro,1,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,BTaux,sig); //bt de tam NTERMS x 1
-		dim3 dimBlock2(NTERMS,NTERMS);
-		d_multmatrix_transpose<<<1,dimBlock2>>>(d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,d_spectra+j*nspectro*NTERMS,NTERMS,nspectro,APaux,__fdividef(w[j],sig));//ap de tam NTERMS x NTERMS
-		cudaDeviceSynchronize();
+		for ( i = 0; i < NTERMS; i++){
+			//#pragma unroll
+			for ( h = 0; h < NTERMS; h++){
+				sum=0;
+				if(i==0)
+					sum2=0;
+				
+				for ( k = 0;  k < nspectro; k++){
+					REAL dAux = __ldg((d_spectra+(j*nspectro*NTERMS)+(h*nspectro)+k));
+					sum += __ldg(d_spectra+(j*nspectro*NTERMS)+(i*nspectro)+k) * dAux;
+					if(i==0){
+						sum2 += (w_aux*( __ldg(spectra+k+nspectro*j)-__ldg(spectro+k+nspectro*j) )) * dAux;
+					}
+				}
+	
+				APaux[(NTERMS)*i+h] = (sum)*w_d_aux;
+				if(i==0){
+					BTaux[h] = __fdividef(sum2,sig);
+				}
+			} 
+		}
 	}
 
-	totalParcialf(pM->BT,NPARMS,NTERMS,beta); //beta de tam 1 x NTERMS
+	REAL sum3,sum4;
+	#pragma unroll
+	for(i=0;i<NTERMS;i++){
+		sum=pM->BT[i];
+		sum2=pM->BT[NTERMS+i];
+		sum3=pM->BT[2*NTERMS+i];
+		sum4=pM->BT[3*NTERMS+i];
+		beta[i] = sum + sum2 + sum3 + sum4;
+	}	
 	totalParcialMatrixf(pM->AP,NTERMS,NTERMS,NPARMS,alpha); //alpha de tam NTERMS x NTERMS
-
-	return 1;
+	
 }
 
 __device__ void covarmf(const REAL * __restrict__ w,const REAL * __restrict__ w_d,const REAL sig,const float * __restrict__ spectro,int  nspectro,const REAL * __restrict__ spectra,const REAL * __restrict__ d_spectra,REAL *beta,REAL *alpha,ProfilesMemory * pM){	

@@ -63,6 +63,7 @@
 #define CLASSICAL_ESTIMATES_SAMPLE_REF 4 //Muestra referencia para cambio de cuadrante de azimuth. Depende del numero de muestras y posicion Continuo
 
 #define NTERMS 10 
+#define NTERMS_11 10 
 
 #define PRECISION double //double 
 
@@ -85,12 +86,8 @@
 #define CTE4_6_13 4.6686411e-13
 #define AH 1.0 //angulo heliocentrico
 
-#define FFT_FORWARD -1 
-#define FFT_BACKWARD +1
-
 #define NPARMS 4 //(IQUV)
 #define INSTRUMENTAL_CONVOLUTION_INTERPOLACION 0  //realizar interpolacion en la convolucion ?? //No funciona !
-
 
 
 //INIT_MODEL=[eta0,magnet,vlos,landadopp,aa,gamma,azi,B1,B2,macro,alfa]
@@ -107,23 +104,6 @@ struct INIT_MODEL{
 	PRECISION mac; //9
 	PRECISION alfa;		
 };
-
-/*struct CUANTIC{  
-
-	REAL N_PI;
-	REAL N_SIG;
-	REAL * NUB;//size stored in  n_sig
-	REAL * NUP;//size stored in n_pi
-	REAL * NUR;//size stored in n_sig
-	REAL * WEB;//size stored in n_sig
-	REAL * WEP;//size stored in n_pi
-	REAL * WER;//size stored in n_sig
-	REAL GL;
-	REAL GU;
-	REAL GEFF;
-	REAL FO;	
-
-};*/
 
 struct CUANTIC{  
 
@@ -148,10 +128,7 @@ typedef struct CUANTIC Cuantic;
 
 /******************************************************/
 
-
 Cuantic * create_cuantic(PRECISION * dat, int log);			
-
-
 PRECISION * fgauss_WL(PRECISION FWHM, PRECISION step_between_lw, PRECISION lambda0, PRECISION lambdaCentral, int nLambda);
 
 /******************* DEFINITIONS FOR READ FITS FILE *********************/

@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 	//----------------------------------------------
 
 	REAL * slight = NULL, * d_slight = NULL;
-	int dimStrayLight;
+	int nl_straylight, ns_straylight, nx_straylight=0,ny_straylight=0;
 
 	const char  * nameInputFileSpectra ;
 	char nameOutputFilePerfiles [4096];
@@ -166,6 +166,12 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	
+	/***************** CHECK STRAY LIGHT ONLY WITH FILLING FACTOR ********************************/
+	if(INITIAL_MODEL.alfa<1 && access(configCrontrolFile.StrayLightFile,F_OK)){
+		printf("\nERROR. Filling factor in Initial model is less than 1 and Stray Light file  %s can not be accessed\n",configCrontrolFile.StrayLightFile);
+		exit(EXIT_FAILURE);
+	}	
+
 	/***************** READ WAVELENGHT FROM GRID OR FITS ********************************/
 	PRECISION * vLambda, *vOffsetsLambda, * vLambda_wl;
 
@@ -431,8 +437,35 @@ int main(int argc, char **argv)
 		}
 	}
 	else if(configCrontrolFile.NumberOfCycles==0){ // synthesis
+
 		if(access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-			slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+			if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
+				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			else if(strcmp(file_ext(configCrontrolFile.StrayLightFile),FITS_FILE)==0){
+				slight= readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
+				if(nx_straylight!=0 || ny_straylight!=0){
+					printf("\n Stray light file has 4 dimensions and for Synthesis only 2 dimensiones file is accepted, henceforth, stray light will not used for synthesis. \n");
+					free(slight);
+					slight= NULL;
+				}
+				if(nl_straylight!=nlambda){
+					printf("\n The number of wavelengths is different in the stray light file: %d and malla grid file %d. \n. Stray light will not used for synthesis.", nl_straylight,nlambda);
+					free(slight);
+					slight= NULL;
+				}
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			else{
+				printf("\n Stray light file hasn't extension .PER or .FITS, review it. \n. Stray light will not used for synthesis.\n");
+				free(slight);
+				slight= NULL;				
+			}
 		}
   
 		Init_Model initModel;
@@ -491,8 +524,6 @@ int main(int argc, char **argv)
 		
 		cudaMemcpyToSymbol(d_initModel_const, &initModel, sizeof(Init_Model));
 		cudaMemcpyToSymbol(d_cuantic_const, cuantic, sizeof(Cuantic));
-
-
 		cudaMemcpyToSymbol(d_fix_const, configCrontrolFile.fix, 11*sizeof(int));
 		cudaMemcpyToSymbol(d_nlambda_const, &nlambda, sizeof(int));
 		cudaMemcpyToSymbol(d_toplim_const, &configCrontrolFile.toplim, sizeof(PRECISION));
@@ -503,7 +534,15 @@ int main(int argc, char **argv)
 		cudaMemcpyToSymbol(d_ah_const, &configCrontrolFile.mu, sizeof(REAL));
 		cudaMemcpyToSymbol(d_logclambda_const, &configCrontrolFile.logclambda, sizeof(int));
 
-		kernel_synthesis<<<1,1>>>(d_Cuantic,d_initModel,d_wlines,nlambda,d_spectra,d_d_spectra, configCrontrolFile.mu,NULL,d_spectra_mac,d_spectra_slight, configCrontrolFile.ConvolveWithPSF,d_fix);
+		//COPY SLIGHT TO DEVICE MEMORY
+		if(slight!=NULL){
+			checkCuda( cudaMalloc(&d_slight, nlambda * NPARMS * sizeof(REAL)));
+			checkCuda( cudaMemcpy(d_slight, slight, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyHostToDevice ) );
+		}
+		else{
+			d_slight = NULL;
+		}
+		kernel_synthesis<<<1,1>>>(d_Cuantic,d_initModel,d_wlines,nlambda,d_spectra,d_d_spectra, configCrontrolFile.mu,d_slight,d_spectra_mac,d_spectra_slight, configCrontrolFile.ConvolveWithPSF,d_fix);
 		
 		checkCuda( cudaMemcpy( h_spectra, d_spectra, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyDeviceToHost ) );
 		checkCuda( cudaMemcpy( h_spectra_mac, d_spectra_mac, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyDeviceToHost ) );
@@ -586,7 +625,33 @@ int main(int argc, char **argv)
 
 		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
 			if(configCrontrolFile.fix[10] &&  access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+				if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
+					slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else if(strcmp(file_ext(configCrontrolFile.StrayLightFile),FITS_FILE)==0){
+					slight= readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
+					if(nx_straylight!=0 || ny_straylight!=0){
+						printf("\n Stray light file has 4 dimensions and for Inversion pixel only 2 dimensiones file is accepted, henceforth, stray light will not used for inversion pixel. \n");
+						free(slight);
+						slight= NULL;
+					}
+					if(nl_straylight!=nlambda){
+						printf("\n The number of wavelengths is different in the stray light file: %d and malla grid file %d. \n. Stray light will not used for inversion pixel.", nl_straylight,nlambda);
+						free(slight);
+						slight= NULL;
+					}
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else{
+					printf("\n Stray light file hasn't extension .PER or .FITS, review it. \n. Stray light will not used for inversion pixel.\n");
+					free(slight);
+					slight= NULL;				
+				}				
 			}			
 			float * spectroPER = (float *) calloc(nlambda*NPARMS,sizeof(float));
 			float * d_spectroPER;
@@ -675,7 +740,14 @@ int main(int argc, char **argv)
 			cudaMemcpyToSymbol(d_ah_const, &configCrontrolFile.mu, sizeof(REAL));
 			cudaMemcpyToSymbol(d_logclambda_const, &configCrontrolFile.logclambda, sizeof(int));
 			
-			lm_mils<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0);
+			if(slight!=NULL){
+				checkCuda( cudaMalloc(&d_slight, nlambda * NPARMS * sizeof(REAL)));
+				checkCuda( cudaMemcpy(d_slight, slight, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyHostToDevice ) );
+			}
+			else{
+				d_slight = NULL;
+			}			
+			lm_mils<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
 
 			cudaDeviceSynchronize();
 
@@ -763,7 +835,9 @@ int main(int argc, char **argv)
 			cudaFree(d_displsSpectro);
 			cudaFree(d_sendCountPixels);
 			cudaFree(d_displsPixels);
-
+			if(slight!=NULL){
+				cudaFree(d_slight);
+			}
 			free(spectroPER);	
 			free(h_spectra);
 			free(h_vModels);
@@ -771,6 +845,33 @@ int main(int argc, char **argv)
 			free(h_vChisqrf);			
 		}
 		else if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),FITS_FILE)==0){ // invert image from fits file 
+			// check if read stray light
+			if(configCrontrolFile.fix[10] && access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
+				if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
+					slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s ", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else if(strcmp(file_ext(configCrontrolFile.StrayLightFile),FITS_FILE)==0){
+					slight = readFitsStrayLightFile(&configCrontrolFile,&nl_straylight,&ns_straylight,&nx_straylight, &ny_straylight);
+					if(nl_straylight!=nlambda){
+						printf("\n The number of wavelengths is different in the stray light file: %d and malla grid file %d. \n. Stray light will not used for inversion.", nl_straylight,nlambda);
+						free(slight);
+						slight= NULL;
+						exit(EXIT_FAILURE);
+					}
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nSTRAY LIGHT FILE READ: %s", configCrontrolFile.StrayLightFile);
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else{
+					printf("\n Stray light file hasn't extension .PER or .FITS, review it. \n. Stray light will not used for inversion.\n");
+					free(slight);
+					slight= NULL;				
+					exit(EXIT_FAILURE);
+				}				
+			}	
 			//*****************************************************************************
 			// GET DEVIDE PROPERTIES TO KNOW HOW TO DISTRIBUTE THE PIXELS IN KERNEL LM_MILS
 			//*****************************************************************************
@@ -1012,12 +1113,27 @@ int main(int argc, char **argv)
 				checkCuda(cudaMemcpy(d_sendCountPixels,h_sendcountsPixels,sizeof(int)*NSTREAMS * N_RTE_PARALLEL, cudaMemcpyHostToDevice));
 				checkCuda(cudaMemcpy(d_displsPixels,h_displsPixels,sizeof(int)*NSTREAMS * N_RTE_PARALLEL, cudaMemcpyHostToDevice));
 				
+				int mapStrayLight = 0;
+				if(slight!=NULL){
+					if(nx_straylight && ny_straylight){
+						mapStrayLight=1;
+						checkCuda( cudaMalloc(&d_slight, nx_straylight*ny_straylight*nlambda * NPARMS * sizeof(REAL)));
+						checkCuda( cudaMemcpy(d_slight, slight, nx_straylight*ny_straylight*nlambda * NPARMS * sizeof(REAL) , cudaMemcpyHostToDevice ) );						
+					}
+					else{
+						checkCuda( cudaMalloc(&d_slight, nlambda * NPARMS * sizeof(REAL)));
+						checkCuda( cudaMemcpy(d_slight, slight, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyHostToDevice ) );
+					}
+				}
+				else{
+					d_slight = NULL;
+				}				
 
 				cudaEventRecord(start);
 				/****** LAUNCH KERNELS ******/
 				for (i = 0; i < NSTREAMS; ++i){
 					lm_mils<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,
-						d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i);
+						d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
 				}
 				/****************************/
 				cudaEventRecord(stop,0);

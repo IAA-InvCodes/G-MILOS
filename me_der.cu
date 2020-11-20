@@ -137,7 +137,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 	   }
 	   #pragma unroll
 	   for(il=0;il<4;il++){
-		   d_convCircular<<<1,nlambda,nlambda*sizeof(REAL)+nlambda*sizeof(double)>>>(spectra+nlambda*il, pM->GMAC_DERIV, nlambda,d_spectra+(9*nlambda)+(nlambda*NTERMS*il)); 
+		   d_convCircular<<<1,nlambda>>>(spectra+nlambda*il, pM->GMAC_DERIV, nlambda,d_spectra+(9*nlambda)+(nlambda*NTERMS*il)); 
 		   cudaDeviceSynchronize();
 	   }
 
@@ -146,7 +146,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 			for (i = 0; i < 9; i++)
 			{
 				if (i != 7)																															 //no convolucionamos S0
-					d_convCircular<<<1,nlambda,nlambda*sizeof(REAL)+nlambda*sizeof(double)>>>(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), pM->GMAC, nlambda,d_spectra + (nlambda * i) + (nlambda * NTERMS * j)); 
+					d_convCircular<<<1,nlambda>>>(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), pM->GMAC, nlambda,d_spectra + (nlambda * i) + (nlambda * NTERMS * j)); 
 					cudaDeviceSynchronize();
 			}
 	   }
@@ -194,24 +194,10 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 	  for(par=0;par<NPARMS;par++){
 		   for(il=0;il<NTERMS;il++){
 			   for(i=0;i<nlambda;i++){
-				   d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]=d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]*initModel->alfa;
-				   if(NTERMS==11){
-					   if(il==10){ //Magnetic filling factor Response function
-						   d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
-					   }
-				   }
-				   else{
-					   if(fix[9]){ // if there is mac 
-						   if(il==10){ //Magnetic filling factor Response function
-							   d_spectra[nlambda*il+nlambda*NTERMS*par+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
-						   }
-					   }
-					   else{
-						   if(il==9){ //Magnetic filling factor Response function
-							   d_spectra[nlambda*il+nlambda*NTERMS*par+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
-						   }
-					   }
-				   }
+					d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]=d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]*initModel->alfa;
+					if(il==10){ //Magnetic filling factor Response function
+						d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
+					}
 			   }
 		   }
 	   }

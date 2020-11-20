@@ -91,9 +91,8 @@ __global__ void d_convCircular(REAL * __restrict__ x, const double * __restrict_
 {
 	
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
-	extern __shared__ REAL s[];
-	REAL * d_x = s;
-	double * d_h = (double *)&d_x[size];
+	__shared__ double d_h[MAX_LAMBDA];
+	__shared__ REAL d_x[MAX_LAMBDA];
 	
 	d_h[i]=h[i];
 	d_x[i]=x[i];
