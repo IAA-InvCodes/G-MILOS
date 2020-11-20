@@ -542,7 +542,7 @@ int main(int argc, char **argv)
 		else{
 			d_slight = NULL;
 		}
-		if(fix[9] && fix[10]){ // there are macroturbulence and stray light then use NTERMS 11 
+		if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11 
 			kernel_synthesis<<<1,1>>>(d_Cuantic,d_initModel,d_wlines,nlambda,d_spectra,d_d_spectra, configCrontrolFile.mu,d_slight,d_spectra_mac,d_spectra_slight, configCrontrolFile.ConvolveWithPSF,d_fix,NTERMS_11);
 		}
 		{	// else use NTERMS 10
