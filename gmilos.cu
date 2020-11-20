@@ -747,7 +747,8 @@ int main(int argc, char **argv)
 			else{
 				d_slight = NULL;
 			}			
-			lm_mils<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
+			//lm_mils<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
+			lm_mils_11<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
 
 			cudaDeviceSynchronize();
 
@@ -1132,8 +1133,8 @@ int main(int argc, char **argv)
 				cudaEventRecord(start);
 				/****** LAUNCH KERNELS ******/
 				for (i = 0; i < NSTREAMS; ++i){
-					lm_mils<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,
-						d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
+					//lm_mils<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
+					lm_mils_11<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);						
 				}
 				/****************************/
 				cudaEventRecord(stop,0);
