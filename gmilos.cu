@@ -623,7 +623,44 @@ int main(int argc, char **argv)
 		weight_sigma[3] = configCrontrolFile.WeightForStokes[3] / configCrontrolFile.noise;
 		
 
-		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file
+		if(strcmp(file_ext(configCrontrolFile.ObservedProfiles),PER_FILE)==0){ // invert only per file			
+			float * spectroPER = (float *) calloc(nlambda*NPARMS,sizeof(float));
+			float * d_spectroPER;
+			FILE * fReadSpectro;
+			char * line = NULL;
+			size_t len = 0;
+			ssize_t read;
+			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
+			
+			int contLine=0;
+			if (fReadSpectro == NULL)
+			{
+				printf("Error opening the file of parameters, it's possible that the file doesn't exist. Please verify it. \n");
+				printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", configCrontrolFile.ObservedProfiles);
+				fclose(fReadSpectro);
+				exit(EXIT_FAILURE);
+			}
+			
+			float aux1, aux2, aux3, aux4, aux5, aux6;
+			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
+				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
+				spectroPER[contLine] = aux3;
+				spectroPER[contLine + nlambda] = aux4;
+				spectroPER[contLine + nlambda * 2] = aux5;
+				spectroPER[contLine + nlambda * 3] = aux6;
+				contLine++;
+			}
+			fclose(fReadSpectro);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nOBSERVED PROFILES FILE READ: %s ", configCrontrolFile.ObservedProfiles);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nNumber of wavelengths in the observed profiles: %d",contLine);
+			printf("\n--------------------------------------------------------------------------------\n");
+			if(nlambda!=contLine){
+				printf("\n--------------------------------------------------------------------------------\n");
+				printf("\nERROR: The number of wavelenghts in observed profiles file  %d is different to number of wavelengths in malla grid %d\n",contLine,nlambda);
+				exit(EXIT_FAILURE);
+			}
 			if(configCrontrolFile.fix[10] &&  access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
 				if(strcmp(file_ext(configCrontrolFile.StrayLightFile),PER_FILE)==0){
 					slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
@@ -652,39 +689,7 @@ int main(int argc, char **argv)
 					free(slight);
 					slight= NULL;				
 				}				
-			}			
-			float * spectroPER = (float *) calloc(nlambda*NPARMS,sizeof(float));
-			float * d_spectroPER;
-			FILE * fReadSpectro;
-			char * line = NULL;
-			size_t len = 0;
-			ssize_t read;
-			fReadSpectro = fopen(configCrontrolFile.ObservedProfiles, "r");
-			
-			int contLine=0;
-			if (fReadSpectro == NULL)
-			{
-				printf("Error opening the file of parameters, it's possible that the file doesn't exist. Please verify it. \n");
-				printf("\n ******* THIS IS THE NAME OF THE FILE RECEVIED : %s \n", configCrontrolFile.ObservedProfiles);
-				fclose(fReadSpectro);
-				exit(EXIT_FAILURE);
 			}
-			
-			float aux1, aux2, aux3, aux4, aux5, aux6;
-			while ((read = getline(&line, &len, fReadSpectro)) != -1 && contLine<nlambda) {
-				sscanf(line,"%e %e %e %e %e %e",&aux1,&aux2,&aux3,&aux4,&aux5,&aux6);
-				spectroPER[contLine] = aux3;
-				spectroPER[contLine + nlambda] = aux4;
-				spectroPER[contLine + nlambda * 2] = aux5;
-				spectroPER[contLine + nlambda * 3] = aux6;
-				contLine++;
-			}
-			fclose(fReadSpectro);
-
-			if(configCrontrolFile.fix[10] &&  access(configCrontrolFile.StrayLightFile,F_OK)!=-1){ //  IF NOT EMPTY READ stray light file 
-				slight = readPerStrayLightFile(configCrontrolFile.StrayLightFile,nlambda,vOffsetsLambda);
-			}
-      
       	
 			
 			Init_Model initModel;
