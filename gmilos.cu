@@ -1154,10 +1154,10 @@ int main(int argc, char **argv)
 				/****** LAUNCH KERNELS ******/
 				for (i = 0; i < NSTREAMS; ++i){
 					if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11
-						lm_mils_11<<<numBlocks,0,stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);						
+						lm_mils_11<<<numBlocks,threadPerBlock,0,stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);						
 					}
 					else{
-						lm_mils<<<numBlocks,0,stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
+						lm_mils<<<numBlocks,threadPerBlock,0,stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
 					}
 				}
 				/****************************/
