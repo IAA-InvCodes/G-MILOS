@@ -635,7 +635,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 				mil_svdf(covar, beta, delta,v,w);
 
 
-				AplicaDeltaf(&initModel, delta, &model);
+				AplicaDeltaf(&initModel, delta, &model,NTERMS);
 				check(&model);
 				mil_sinrf(d_cuantic_const, &model, d_wlines_const, d_nlambda_const, spectraAux , d_ah_const,slight_pixel,pM->spectra_mac,pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa, &sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 

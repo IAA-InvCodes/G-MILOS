@@ -11,7 +11,7 @@ __device__ void AplicaDelta(const Init_Model * model, PRECISION * delta, Init_Mo
 /**
 *
 */
-__device__ void AplicaDeltaf(const Init_Model * model, float * delta, Init_Model *modelout);
+__device__ void AplicaDeltaf(const Init_Model * model, float * delta, Init_Model *modelout,const int nterms);
 /**
  * 
  */
