@@ -63,7 +63,7 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,
  * 	@param nlamda Number of nlambdas to register.
  * 
  * */
-__device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, const Cuantic  cuantic);
+__device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, const Cuantic  cuantic,const int nterms);
 
 
 /**

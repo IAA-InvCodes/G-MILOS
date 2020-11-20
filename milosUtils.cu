@@ -559,7 +559,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 		int i,j,iter;  //, n_ghots;
 		int nfree = (d_nlambda_const * NPARMS) - NTERMS;
 		ProfilesMemory * pM = (ProfilesMemory *) malloc(sizeof(ProfilesMemory));
-		InitProfilesMemoryFromDevice(d_nlambda_const,pM,d_cuantic_const);
+		InitProfilesMemoryFromDevice(d_nlambda_const,pM,d_cuantic_const,NTERMS);
 		float v[NTERMS*NTERMS], w[NTERMS];
 		REAL covar[NTERMS * NTERMS], beta[NTERMS], delta[NTERMS];
 		REAL alpha[NTERMS * NTERMS];
@@ -699,8 +699,6 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInit
 		int nfree = (d_nlambda_const * NPARMS) - NTERMS_11;
 		ProfilesMemory * pM = (ProfilesMemory *) malloc(sizeof(ProfilesMemory));
 		InitProfilesMemoryFromDevice(d_nlambda_const,pM,d_cuantic_const,NTERMS_11);
-		
-		
 		PRECISION covar[NTERMS_11 * NTERMS_11], beta[NTERMS_11], delta[NTERMS_11];
 		REAL alpha[NTERMS_11 * NTERMS_11];
 		REAL cosi,sinis, sina, cosa, sinda, cosda, sindi, cosdi,cosis_2;
