@@ -202,6 +202,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 					}
 					else{
 						if(il==9){ //Magnetic filling factor Response function
+							printf("\n MODIFICANDO EL FILLING FACTOR\n");
 							d_spectra[(nlambda*il+nlambda*nterms*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
 						}
 					}
