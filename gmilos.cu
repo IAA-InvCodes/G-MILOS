@@ -480,19 +480,38 @@ int main(int argc, char **argv)
 		initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
 		initModel.S0 = INITIAL_MODEL.S0;
 		initModel.S1 = INITIAL_MODEL.S1;
-		printf("\n MODEL ATMOSPHERE: \n");
-		printf("\n ETA0: %lf",initModel.eta0);
-		printf("\n B: %lf",initModel.B);
-		printf("\n vlos: %lf",initModel.vlos);
-		printf("\n dopp: %lf",initModel.dopp);
-		printf("\n aa: %lf",initModel.aa);
-		printf("\n gm: %lf",initModel.gm);
-		printf("\n az: %lf",initModel.az);
-		printf("\n S0: %lf",initModel.S0);
-		printf("\n S1: %lf",initModel.S1);      
-		printf("\n mac: %lf",initModel.mac);
-		printf("\n alfa: %lf",initModel.alfa);
-		printf("\n");          
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nATMOSPHERE MODEL FILE READ: %s ",configCrontrolFile.InitialGuessModel);
+		printf("\n--------------------------------------------------------------------------------");
+		printf("\nINITAL MODEL ATMOSPHERE: \n\n");
+		printf("eta_0               :%lf\n",initModel.eta0);
+		printf("magnetic field [G]  :%lf\n",initModel.B);
+		printf("LOS velocity[km/s]  :%lf\n",initModel.vlos);
+		printf("Doppler width [A]   :%lf\n",initModel.dopp);
+		printf("damping             :%lf\n",initModel.aa);
+		printf("gamma [deg]         :%lf\n",initModel.gm);
+		printf("phi   [deg]         :%lf\n",initModel.az);
+		printf("S_0                 :%lf\n",initModel.S0);
+		printf("S_1                 :%lf\n",initModel.S1);
+		printf("v_mac [km/s]        :%lf\n",initModel.mac);
+		printf("filling factor      :%lf\n",initModel.alfa);
+		printf("--------------------------------------------------------------------------------\n");
+		
+		if(configCrontrolFile.ConvolveWithPSF && initModel.mac>0){
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nThe program needs to use convolution. Filter PSF activated and macroturbulence greater than zero. ");
+			printf("\n--------------------------------------------------------------------------------\n");
+		}
+		else if(configCrontrolFile.ConvolveWithPSF){
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nThe program needs to use convolution. Filter PSF activated. ");
+			printf("\n--------------------------------------------------------------------------------\n");
+		}
+		else if(initModel.mac>0){
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nThe program needs to use convolution. Macroturbulence in initial atmosphere model greater than zero.");
+			printf("\n--------------------------------------------------------------------------------\n");
+		}
 
 		h_spectra = (REAL *) malloc(nlambda * NPARMS * sizeof(REAL));
 		REAL * h_spectra_mac = (REAL *) malloc(nlambda * NPARMS * sizeof(REAL));
@@ -577,15 +596,15 @@ int main(int argc, char **argv)
 				fprintf(fptr,"%d\t%f\t%e\t%e\t%e\t%e\n", indexLine, (vLambda[kk]-configCrontrolFile.CentralWaveLenght)*1000, h_spectra[kk], h_spectra[kk + nlambda], h_spectra[kk + nlambda * 2], h_spectra[kk + nlambda * 3]);
 			}
 			fclose(fptr);
-			printf("\n*******************************************************************************************");
-			printf("\n******************SYNTHESIS DONE: %s",nameAux);
-			printf("\n*******************************************************************************************\n");
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\n------------------SYNTHESIS DONE: %s",nameAux);
+			printf("\n--------------------------------------------------------------------------------\n");
 		}
 		else{
 			printf("\n ERROR !!! The output file can not be open: %s",nameAux);
 		}
 
-		int number_parametros = 0;
+		/*int number_parametros = 0;
 		for (number_parametros = 0; number_parametros < NTERMS; number_parametros++)
 		{
 			strcpy(nameAux,get_basefilename(configCrontrolFile.InitialGuessModel));
@@ -605,7 +624,7 @@ int main(int argc, char **argv)
 				h_d_spectra[kk + nlambda * number_parametros + nlambda * NTERMS * 3]);
 			}
 			fclose(fptr);
-		}
+		}*/
 		
 
 
