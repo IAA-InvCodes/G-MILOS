@@ -153,7 +153,6 @@ __device__ void AplicaDeltaf(const Init_Model * model, float *  delta, Init_Mode
 			modelout->alfa = model->alfa - delta[10];
 		else
 		{
-			printf("\n aplicando modificacion en filling factor %f\n",delta[9]);
 			modelout->alfa = model->alfa - delta[9];
 		}
 	}
