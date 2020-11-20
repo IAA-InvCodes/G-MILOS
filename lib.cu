@@ -62,7 +62,7 @@ __device__ void covarm(const REAL * __restrict__ w,const REAL * __restrict__ w_d
 	Calculate covariance matriz using float type
 */
 
-__device__ void covarmf(const REAL * __restrict__ w,const REAL * __restrict__ w_d,const REAL sig,const float * __restrict__ spectro,int  nspectro,const REAL * __restrict__ spectra,const REAL * __restrict__ d_spectra,REAL *beta,REAL *alpha,ProfilesMemory * pM){	
+__device__ void covarmf(const REAL * __restrict__ w,const REAL * __restrict__ w_d,const REAL sig,const float * __restrict__ spectro,int  nspectro,const REAL * __restrict__ spectra,const REAL * __restrict__ d_spectra,REAL *beta,REAL *alpha,ProfilesMemory * pM,const int nterms){	
 	
 
 	int j,i,k;
@@ -79,25 +79,25 @@ __device__ void covarmf(const REAL * __restrict__ w,const REAL * __restrict__ w_
 
 		REAL w_aux = w[j];
 		REAL w_d_aux = w_d[j];
-		BTaux=pM->BT+(j*NTERMS);
-		APaux=pM->AP+(j*NTERMS*NTERMS);
+		BTaux=pM->BT+(j*nterms);
+		APaux=pM->AP+(j*nterms*nterms);
 	
-		for ( i = 0; i < NTERMS; i++){
-			for ( h = 0; h < NTERMS; h++){
+		for ( i = 0; i < nterms; i++){
+			for ( h = 0; h < nterms; h++){
 				sum=0;
 				if(i==0)
 					sum2=0;
 				
 				for ( k = 0;  k < nspectro; k++){
-					REAL dAux = __ldg((d_spectra+(j*nspectro*NTERMS)+(h*nspectro)+k));
-					sum += __ldg(d_spectra+(j*nspectro*NTERMS)+(i*nspectro)+k) * dAux;
+					REAL dAux = __ldg((d_spectra+(j*nspectro*nterms)+(h*nspectro)+k));
+					sum += __ldg(d_spectra+(j*nspectro*nterms)+(i*nspectro)+k) * dAux;
 					
 					if(i==0){
 						sum2 += (w_aux*( __ldg(spectra+k+nspectro*j)-__ldg(spectro+k+nspectro*j) )) * dAux;
 					}
 				}
 	
-				APaux[(NTERMS)*i+h] = (sum)*w_d_aux;
+				APaux[(nterms)*i+h] = (sum)*w_d_aux;
 				if(i==0){
 					BTaux[h] = __fdividef(sum2,sig);
 				}
@@ -107,14 +107,14 @@ __device__ void covarmf(const REAL * __restrict__ w,const REAL * __restrict__ w_
 
 	REAL sum3,sum4;
 	#pragma unroll
-	for(i=0;i<NTERMS;i++){
+	for(i=0;i<nterms;i++){
 		sum=pM->BT[i];
-		sum2=pM->BT[NTERMS+i];
-		sum3=pM->BT[2*NTERMS+i];
-		sum4=pM->BT[3*NTERMS+i];
+		sum2=pM->BT[nterms+i];
+		sum3=pM->BT[2*nterms+i];
+		sum4=pM->BT[3*nterms+i];
 		beta[i] = sum + sum2 + sum3 + sum4;
 	}	
-	totalParcialMatrixf(pM->AP,NTERMS,NTERMS,NPARMS,alpha); //alpha de tam NTERMS x NTERMS
+	totalParcialMatrixf(pM->AP,nterms,nterms,NPARMS,alpha); //alpha de tam nterms x nterms
 }
 
 __device__ REAL fchisqr(const REAL * __restrict__ spectra,const int  nspectro,const float * __restrict__ spectro, const REAL *  w, const REAL  sig, const REAL nfree){
