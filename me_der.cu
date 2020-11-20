@@ -12,7 +12,7 @@ extern __constant__ PRECISION d_psfFunction_const [MAX_LAMBDA];
 
 __device__ void funcionComponentFor(const int n_pi,PRECISION  iwlines,int  numl,const REAL * __restrict__ wex,REAL *nuxB,REAL *dfi,REAL *dshi,PRECISION  LD,PRECISION  A,int desp,ProfilesMemory * pM,REAL auxCte,int * uuGlobal, int * FGlobal,int * HGlobal);
 __global__ void  d_funcionComponentFor(const int i,int  numl,const REAL * __restrict__ wex,const REAL * __restrict__ nuxB,REAL *dfi,REAL *dshi,const PRECISION  LD,const PRECISION  A,const int desp,ProfilesMemory * pM,const REAL * __restrict__ H, const REAL * __restrict__ F,REAL *uu,REAL auxCte);
-__global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah, ProfilesMemory * pM,PRECISION E0,REAL cosi,REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,REAL E0_2,REAL cosi_2_E0,REAL sinis_cosa,REAL sinis_sina,REAL sindi_cosa,REAL sindi_sina,REAL cosdi_E0_2,REAL cosis_2_E0_2,REAL sinis_E0_2);
+__global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah, ProfilesMemory * pM,PRECISION E0,REAL cosi,REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,REAL E0_2,REAL cosi_2_E0,REAL sinis_cosa,REAL sinis_sina,REAL sindi_cosa,REAL sindi_sina,REAL cosdi_E0_2,REAL cosis_2_E0_2,REAL sinis_E0_2,const int nterms);
 
 
 /*
@@ -78,7 +78,7 @@ __global__ void  d_funcionComponentFor(const int i,int  numl,const REAL * __rest
 
 
 
-__device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initModel,const PRECISION * __restrict__ wlines,const int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, REAL ah,const REAL * __restrict__ slight,int filter,ProfilesMemory * pM, const int * __restrict__ fix, REAL cosi, REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,int * uuGlobal, int * FGlobal,int * HGlobal)
+__device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initModel,const PRECISION * __restrict__ wlines,const int nlambda,REAL *d_spectra,REAL *spectra, REAL * spectra_slight, REAL ah,const REAL * __restrict__ slight,int filter,ProfilesMemory * pM, const int * __restrict__ fix, REAL cosi, REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,int * uuGlobal, int * FGlobal,int * HGlobal,const int nterms)
 {
 
 	int il,i,j;	
@@ -110,7 +110,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 	cosis_2_E0_2=cosis_2*E0_2;
 	sinis_E0_2=sinis*E0_2;
 
-	me_der_kernel<<<1,nlambda,(nlambda*7*7)*sizeof(REAL)>>>(initModel->S1,nlambda,d_spectra, ah, pM, initModel->eta0*cuantic[0].FO, cosi, sinis, sina, cosa, sinda, cosda, sindi, cosdi,cosis_2,E0_2,cosi_2_E0,sinis_cosa,sinis_sina,sindi_cosa,sindi_sina,cosdi_E0_2,cosis_2_E0_2,sinis_E0_2);
+	me_der_kernel<<<1,nlambda,(nlambda*7*7)*sizeof(REAL)>>>(initModel->S1,nlambda,d_spectra, ah, pM, initModel->eta0*cuantic[0].FO, cosi, sinis, sina, cosa, sinda, cosda, sindi, cosdi,cosis_2,E0_2,cosi_2_E0,sinis_cosa,sinis_sina,sindi_cosa,sindi_sina,cosdi_E0_2,cosis_2_E0_2,sinis_E0_2,nterms);
 	cudaDeviceSynchronize();
 
 
@@ -137,7 +137,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 	   }
 	   #pragma unroll
 	   for(il=0;il<4;il++){
-		   d_convCircular<<<1,nlambda>>>(spectra+nlambda*il, pM->GMAC_DERIV, nlambda,d_spectra+(9*nlambda)+(nlambda*NTERMS*il)); 
+		   d_convCircular<<<1,nlambda>>>(spectra+nlambda*il, pM->GMAC_DERIV, nlambda,d_spectra+(9*nlambda)+(nlambda*nterms*il)); 
 		   cudaDeviceSynchronize();
 	   }
 
@@ -146,7 +146,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 			for (i = 0; i < 9; i++)
 			{
 				if (i != 7)																															 //no convolucionamos S0
-					d_convCircular<<<1,nlambda>>>(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), pM->GMAC, nlambda,d_spectra + (nlambda * i) + (nlambda * NTERMS * j)); 
+					d_convCircular<<<1,nlambda>>>(d_spectra + (nlambda * i) + (nlambda * nterms * j), pM->GMAC, nlambda,d_spectra + (nlambda * i) + (nlambda * nterms * j)); 
 					cudaDeviceSynchronize();
 			}
 	   }
@@ -164,7 +164,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 
 	   REAL Ic;
 				   
-	   for (i = 0; i < NTERMS; i++)
+	   for (i = 0; i < nterms; i++)
 	   {
 		   // invert continuous
 		   if (i != 7){	
@@ -180,10 +180,10 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 	   for (j = 1; j < NPARMS; j++)
 	   {
 		   
-		   for (i = 0; i < NTERMS; i++)
+		   for (i = 0; i < nterms; i++)
 		   {
 			   if (i != 7)																															 //no convolucionamos S0
-				   direct_convolution(d_spectra + (nlambda * i) + (nlambda * NTERMS * j), nlambda, d_psfFunction_const, nlambda,pM->dirConvPar);	   
+				   direct_convolution(d_spectra + (nlambda * i) + (nlambda * nterms * j), nlambda, d_psfFunction_const, nlambda,pM->dirConvPar);	   
 		   }
 	   }
    }
@@ -192,11 +192,11 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 	   // Response Functions 
 	  int par;
 	  for(par=0;par<NPARMS;par++){
-		   for(il=0;il<NTERMS;il++){
+		   for(il=0;il<nterms;il++){
 			   for(i=0;i<nlambda;i++){
-					d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]=d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]*initModel->alfa;
+					d_spectra[(nlambda*il+nlambda*nterms*par)+i]=d_spectra[(nlambda*il+nlambda*nterms*par)+i]*initModel->alfa;
 					if(il==10){ //Magnetic filling factor Response function
-						d_spectra[(nlambda*il+nlambda*NTERMS*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
+						d_spectra[(nlambda*il+nlambda*nterms*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
 					}
 			   }
 		   }
@@ -208,7 +208,7 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 }
 
 
-__global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah, ProfilesMemory * pM,PRECISION E0,REAL cosi,REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,REAL E0_2,REAL cosi_2_E0,REAL sinis_cosa,REAL sinis_sina,REAL sindi_cosa,REAL sindi_sina,REAL cosdi_E0_2,REAL cosis_2_E0_2,REAL sinis_E0_2){
+__global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah, ProfilesMemory * pM,PRECISION E0,REAL cosi,REAL sinis,REAL sina, REAL cosa,REAL sinda,REAL  cosda,REAL  sindi,REAL cosdi,REAL cosis_2,REAL E0_2,REAL cosi_2_E0,REAL sinis_cosa,REAL sinis_sina,REAL sindi_cosa,REAL sindi_sina,REAL cosdi_E0_2,REAL cosis_2_E0_2,REAL sinis_E0_2,const int nterms){
 
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -336,9 +336,9 @@ __global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah,
 		dgp5=d_ei[i+nlambda*il]*(ext2)+r_etai_2*d_eu[i+nlambda*il]+r_etai*(rhov*d_eq[i+nlambda*il]+etaq*d_rv[i+nlambda*il]-rhoq*d_ev[i+nlambda*il]-etav*d_rq[i+nlambda*il]);
 		dgp6=d_ei[i+nlambda*il]*(ext3)+r_etai_2*d_ev[i+nlambda*il]+r_etai*(rhoq*d_eu[i+nlambda*il]+etau*d_rq[i+nlambda*il]-rhou*d_eq[i+nlambda*il]-etaq*d_ru[i+nlambda*il]);
 		d_spectra[i+nlambda*il]=-(((d_ei[i+nlambda*il]*r_gp3+r_etai*dgp3)*r_dt-d_dt*etai_gp3)*(dtaux));
-		d_spectra[i+nlambda*il+nlambda*NTERMS]=((dgp4+d_rq[i+nlambda*il]*r_gp2+rhoq*dgp2)*r_dt-d_dt*(gp4_gp2_rhoq))*(dtaux);
-		d_spectra[i+nlambda*il+(nlambda*NTERMS*2)]=((dgp5+d_ru[i+nlambda*il]*r_gp2+rhou*dgp2)*r_dt-d_dt*(gp5_gp2_rhou))*(dtaux);
-		d_spectra[i+nlambda*il+(nlambda*NTERMS*3)]=((dgp6+d_rv[i+nlambda*il]*r_gp2+rhov*dgp2)*r_dt-d_dt*(gp6_gp2_rhov))*(dtaux);
+		d_spectra[i+nlambda*il+nlambda*nterms]=((dgp4+d_rq[i+nlambda*il]*r_gp2+rhoq*dgp2)*r_dt-d_dt*(gp4_gp2_rhoq))*(dtaux);
+		d_spectra[i+nlambda*il+(nlambda*nterms*2)]=((dgp5+d_ru[i+nlambda*il]*r_gp2+rhou*dgp2)*r_dt-d_dt*(gp5_gp2_rhou))*(dtaux);
+		d_spectra[i+nlambda*il+(nlambda*nterms*3)]=((dgp6+d_rv[i+nlambda*il]*r_gp2+rhov*dgp2)*r_dt-d_dt*(gp6_gp2_rhov))*(dtaux);
 
 	}
 	
@@ -349,21 +349,21 @@ __global__ void me_der_kernel(PRECISION S1,int nlambda,REAL *d_spectra, REAL ah,
 	REAL dti = -((__fdividef(1.0,r_dt))* ah);
 
 	d_spectra[i+nlambda*8]=-dti*etai_gp3;
-	d_spectra[i+nlambda*8+(nlambda*NTERMS)]= dti*(gp4_gp2_rhoq);   		
-	d_spectra[i+nlambda*8+(nlambda*NTERMS*2)]= dti*(gp5_gp2_rhou);
-	d_spectra[i+nlambda*8+(nlambda*NTERMS*3)]= dti*(gp6_gp2_rhov);
+	d_spectra[i+nlambda*8+(nlambda*nterms)]= dti*(gp4_gp2_rhoq);   		
+	d_spectra[i+nlambda*8+(nlambda*nterms*2)]= dti*(gp5_gp2_rhou);
+	d_spectra[i+nlambda*8+(nlambda*nterms*3)]= dti*(gp6_gp2_rhov);
 	
 	//S0
 	
 	d_spectra[i+nlambda*7]=1;
-	d_spectra[i+nlambda*7+(nlambda*NTERMS)]=0;
-	d_spectra[i+nlambda*7+(nlambda*NTERMS*2)]=0;
-	d_spectra[i+nlambda*7+(nlambda*NTERMS*3)]=0;
+	d_spectra[i+nlambda*7+(nlambda*nterms)]=0;
+	d_spectra[i+nlambda*7+(nlambda*nterms*2)]=0;
+	d_spectra[i+nlambda*7+(nlambda*nterms*3)]=0;
 		
 	//azimuth stokes I &V
 	
 	d_spectra[i+nlambda*6]=0;
-	d_spectra[i+nlambda*6+(nlambda*NTERMS*3)]=0;
+	d_spectra[i+nlambda*6+(nlambda*nterms*3)]=0;
 	
 	
 }

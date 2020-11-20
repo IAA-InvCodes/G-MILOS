@@ -84,7 +84,7 @@ __global__ void kernel_synthesis(Cuantic *cuantic,Init_Model *initModel,PRECISIO
 	REAL cosi,sinis,sina,cosa, sinda, cosda, sindi, cosdi,cosis_2;
 	int uuGlobal,FGlobal,HGlobal;
 	mil_sinrf(d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, spectra, d_ah_const, slight, spectra_mc, spectra_slight, filter, pM,&cosi,&sinis,&sina,&cosa,&sinda,&cosda,&sindi,&cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-	me_der(&d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, d_spectra, spectra_mc, spectra_slight, d_ah_const, slight, filter,pM, fix,cosi,sinis,sina,cosa,sinda,cosda,sindi,cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal);
+	me_der(&d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, d_spectra, spectra_mc, spectra_slight, d_ah_const, slight, filter,pM, fix,cosi,sinis,sina,cosa,sinda,cosda,sindi,cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS);
 	FreeProfilesMemoryFromDevice(pM,d_cuantic_const);
 	free(pM);
 

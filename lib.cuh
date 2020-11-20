@@ -28,7 +28,7 @@ __device__ REAL fchisqr(const REAL * __restrict__ spectra,const int  nspectro,co
 /**
  * 
  */
-__device__ void multmatrixIDLValue(const REAL *a,int naf,int nac,const REAL *b,int nbf,int nbc,REAL *result,REAL value);
+__device__ void multmatrixIDLValue(const REAL *a,int naf,int nac,const REAL *b,int nbf,int nbc,REAL *result,REAL value,const int nterms);
 /**
  * 
  */

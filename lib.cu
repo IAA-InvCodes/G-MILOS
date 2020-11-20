@@ -54,7 +54,7 @@ __device__ void covarm(const REAL * __restrict__ w,const REAL * __restrict__ w_d
 		sum4=pM->BT[3*nterms+i];
 		beta[i] = sum + sum2 + sum3 + sum4;
 	}	
-	totalParcialMatrixf(pM->AP,nterms,nterms,NPARMS,alpha); //alpha de tam NTERMS x NTERMS
+	totalParcialMatrixf(pM->AP,nterms,nterms,NPARMS,alpha); //alpha de tam nterms x nterms
 	
 }
 
@@ -71,7 +71,7 @@ __device__ void covarmf(const REAL * __restrict__ w,const REAL * __restrict__ w_
 	REAL sum2;
 	REAL *APaux;
 	REAL *BTaux;
-	/*for(i=0;i<NTERMS;i++)
+	/*for(i=0;i<nterms;i++)
 		beta[i]=0;*/
 
 	for(j=0;j<NPARMS;j++){
@@ -166,12 +166,12 @@ __device__ REAL fchisqr(const REAL * __restrict__ spectra,const int  nspectro,co
 	El tamaño de columnas de b, nbc, debe de ser igual al de filas de a, naf.
 
 */
-__device__ void multmatrixIDLValue(const REAL *a,int naf,int nac,const REAL *b,int nbf,int nbc,REAL *result,REAL value){
+__device__ void multmatrixIDLValue(const REAL *a,int naf,int nac,const REAL *b,int nbf,int nbc,REAL *result,REAL value,const int nterms){
     
    int i,k;
    REAL sum;
 
-	for ( i = 0; i < NTERMS; i++){		
+	for ( i = 0; i < nterms; i++){		
 		sum=0;
 		for ( k = 0;  k < naf; k++){
 			//printf("i: %d,j:%d,k=%d .. a[%d][%d]:%f  .. b[%d][%d]:%f\n",i,j,k,k,j,a[k*nac+j],i,k,b[i*nbc+k]);
