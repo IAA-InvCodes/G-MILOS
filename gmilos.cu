@@ -1273,6 +1273,10 @@ int main(int argc, char **argv)
 						printf("\n ERROR WRITING FILE OF MODELS: %s",nameAuxOutputModel);
 				}
 				// PROCESS FILE OF SYNTETIC PROFILES
+				printf("\n\n--------------------------------------------------------------------------------");
+				printf("\nINVERTED MODEL SAVED IN FILE: %s ", nameAuxOutputModel);
+				printf("\n--------------------------------------------------------------------------------");
+				nameAuxOutputModel
 
 				if(configCrontrolFile.SaveSynthesisAdjusted){
 					// WRITE SINTHETIC PROFILES TO FITS FILE
