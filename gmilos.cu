@@ -1275,7 +1275,7 @@ int main(int argc, char **argv)
 				// PROCESS FILE OF SYNTETIC PROFILES
 				printf("\n\n--------------------------------------------------------------------------------");
 				printf("\nINVERTED MODEL SAVED IN FILE: %s ", nameAuxOutputModel);
-				printf("\n--------------------------------------------------------------------------------");
+				printf("\n--------------------------------------------------------------------------------\n");
 				
 
 				if(configCrontrolFile.SaveSynthesisAdjusted){
