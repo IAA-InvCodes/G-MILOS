@@ -758,8 +758,12 @@ int main(int argc, char **argv)
 			else{
 				d_slight = NULL;
 			}			
-			//lm_mils<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
-			lm_mils_11<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
+			if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11
+				lm_mils_11<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
+			}
+			else{
+				lm_mils<<<1,1>>>(d_spectroPER, d_vModels, d_vChisqrf, d_slight, d_vNumIter,d_spectra, d_displsSpectro, d_sendCountPixels, d_displsPixels, 1,0,0);
+			}
 
 			cudaDeviceSynchronize();
 
@@ -968,7 +972,12 @@ int main(int argc, char **argv)
 				/*printf("\n EL GRID SIZE SERÁ: %d el ",gridSize);
 				printf("\n Max potential block size MINGRIDSIZE %d BLOCKSIZE %d ",minGridSize,blockSize);*/
 
-				cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocks,(void*)lm_mils,threadPerBlock,0);
+				if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11
+					cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocks,(void*)lm_mils_11,threadPerBlock,0);
+				}
+				else{
+					cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocks,(void*)lm_mils,threadPerBlock,0);
+				}
 				//printf("\n MAX ACTIVE BLOCKS PER MULTIPROCESSOR %d ",numBlocks);
 
 
@@ -1144,8 +1153,12 @@ int main(int argc, char **argv)
 				cudaEventRecord(start);
 				/****** LAUNCH KERNELS ******/
 				for (i = 0; i < NSTREAMS; ++i){
-					//lm_mils<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
-					lm_mils_11<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);						
+					if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11
+						lm_mils_11<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);						
+					}
+					else{
+						lm_mils<<<numBlocks,threadPerBlock,numBlocks*NTERMS*sizeof(REAL),stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);
+					}
 				}
 				/****************************/
 				cudaEventRecord(stop,0);

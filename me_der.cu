@@ -195,8 +195,15 @@ __device__  int me_der(const Cuantic * __restrict__ cuantic,Init_Model *initMode
 		   for(il=0;il<nterms;il++){
 			   for(i=0;i<nlambda;i++){
 					d_spectra[(nlambda*il+nlambda*nterms*par)+i]=d_spectra[(nlambda*il+nlambda*nterms*par)+i]*initModel->alfa;
-					if(il==10){ //Magnetic filling factor Response function
-						d_spectra[(nlambda*il+nlambda*nterms*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
+					if(nterms==NTERMS_11){
+						if(il==10){ //Magnetic filling factor Response function
+							d_spectra[(nlambda*il+nlambda*nterms*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
+						}
+					}
+					else{
+						if(il==9){ //Magnetic filling factor Response function
+							d_spectra[(nlambda*il+nlambda*nterms*par)+i]=spectra_slight[nlambda*par+i]-slight[nlambda*par+i];
+						}
 					}
 			   }
 		   }
