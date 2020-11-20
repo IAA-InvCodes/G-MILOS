@@ -19,7 +19,7 @@ __device__ int check(Init_Model *model);
 /**
  * 
  */
-__device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, const int  nlambda);
+__device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, const int  nlambda,const int nterms);
 
 /**
  * 

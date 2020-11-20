@@ -233,36 +233,36 @@ __device__ int check(Init_Model *model)
 /**
  * Study put as parallel with a kernel 
  * */
-__device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, const int nlambda)
+__device__ void FijaACeroDerivadasNoNecesarias(REAL * __restrict__ d_spectra, const int nlambda,const int nterms)
 {
 
 	int In, j,i;
-	for (In = 0; In < NTERMS; In++)
+	for (In = 0; In < nterms; In++)
 		if (d_fix_const[In] == 0)
 			for (j = 0; j < NPARMS; j++)
 				for (i = 0; i < nlambda; i++)
-					d_spectra[i + nlambda * In + j * nlambda * NTERMS] = 0;
+					d_spectra[i + nlambda * In + j * nlambda * nterms] = 0;
 					
 }
 
 
 /*
-	Tamaño de H es 	 NTERMS x NTERMS
-	Tamaño de beta es 1xNTERMS
+	Tamaño de H es 	 NTERMS_11 x NTERMS_11
+	Tamaño de beta es 1xNTERMS_11
 
-	return en delta tam 1xNTERMS
+	return en delta tam 1xNTERMS_11
 */
 __device__ int mil_svd(PRECISION * h, PRECISION *beta, PRECISION *delta)
 {
 
 	const PRECISION epsilon = 1e-12;
-	PRECISION v[NTERMS*NTERMS], w[NTERMS];
+	PRECISION v[NTERMS_11*NTERMS_11], w[NTERMS_11];
 	
 	int i;
 	int j,k; 
 
-	PRECISION aux2[NTERMS];
-	svdcmp(h,NTERMS,NTERMS,w,v);
+	PRECISION aux2[NTERMS_11];
+	svdcmp(h,NTERMS_11,NTERMS_11,w,v);
 	
 
 
@@ -270,27 +270,27 @@ __device__ int mil_svd(PRECISION * h, PRECISION *beta, PRECISION *delta)
 	
 	PRECISION sum;
 		
-	for ( j = 0; j < NTERMS; j++){
+	for ( j = 0; j < NTERMS_11; j++){
 		sum=0;
 		#pragma unroll
-		for ( k = 0;  k < NTERMS; k++){
-			sum += beta[k] * v[k*NTERMS+j];
+		for ( k = 0;  k < NTERMS_11; k++){
+			sum += beta[k] * v[k*NTERMS_11+j];
 		}
 		aux2[j] = sum;
 	}	
 	
 
 	#pragma unroll
-	for (i = 0; i < NTERMS; i++)
+	for (i = 0; i < NTERMS_11; i++)
 	{
 		aux2[i]= aux2[i]*((fabs(w[i]) > epsilon) ? (1/w[i]): 0.0);
 	}
 
-	for ( i = 0; i < NTERMS; i++){		
+	for ( i = 0; i < NTERMS_11; i++){		
 		sum=0;
 		#pragma unroll
-		for ( k = 0;  k < NTERMS; k++){
-			sum += v[i*NTERMS+k] * aux2[k];
+		for ( k = 0;  k < NTERMS_11; k++){
+			sum += v[i*NTERMS_11+k] * aux2[k];
 		}
 		delta[i] = sum;
 
@@ -604,7 +604,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 
 			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight_pixel,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
 			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS);
-			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);
+			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const,NTERMS);
 			covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM,NTERMS);
 
 			#pragma unroll
@@ -648,7 +648,7 @@ __global__ void lm_mils(const float * __restrict__ spectro,Init_Model * vInitMod
 					flambda=flambda/(PARBETA_better*PARBETA_FACTOR);
 					initModel = model;
 					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS);
-					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
+					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const,NTERMS);	
 					covarmf(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM,NTERMS);
 					
 					#pragma unroll
@@ -696,13 +696,13 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInit
 		const REAL PARBETA_worst = 10.0;
 
 		int i,j,iter;  //, n_ghots;
-		int nfree = (d_nlambda_const * NPARMS) - NTERMS;
+		int nfree = (d_nlambda_const * NPARMS) - NTERMS_11;
 		ProfilesMemory * pM = (ProfilesMemory *) malloc(sizeof(ProfilesMemory));
-		InitProfilesMemoryFromDevice(d_nlambda_const,pM,d_cuantic_const);
+		InitProfilesMemoryFromDevice(d_nlambda_const,pM,d_cuantic_const,NTERMS_11);
 		
 		
-		PRECISION covar[NTERMS * NTERMS], beta[NTERMS], delta[NTERMS];
-		REAL alpha[NTERMS * NTERMS];
+		PRECISION covar[NTERMS_11 * NTERMS_11], beta[NTERMS_11], delta[NTERMS_11];
+		REAL alpha[NTERMS_11 * NTERMS_11];
 		REAL cosi,sinis, sina, cosa, sinda, cosda, sindi, cosdi,cosis_2;
 		int uuGlobal,FGlobal,HGlobal;
 
@@ -743,13 +743,13 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInit
 				initModel.az = 1;		
 
 			mil_sinrf(d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, spectraAux, d_ah_const,slight_pixel,pM->spectra_mac, pM->spectra_slight, d_use_convolution_const,pM,&cosi,&sinis,&sina,&cosa,&sinda, &cosda, &sindi, &cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS);
-			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);
-			covarm(d_weight_const, d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM,NTERMS);
+			me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, pM->spectra_slight, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina, cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS_11);
+			FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const,NTERMS_11);
+			covarm(d_weight_const, d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM,NTERMS_11);
 			
 
 			#pragma unroll
-			for (j = 0; j < NTERMS * NTERMS; j++){
+			for (j = 0; j < NTERMS_11 * NTERMS_11; j++){
 				covar[j] = alpha[j];
 			}
 
@@ -761,9 +761,9 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInit
 			do
 			{
 				// CHANGE VALUES OF DIAGONAL 
-				for (j = 0; j < NTERMS; j++)
+				for (j = 0; j < NTERMS_11; j++)
 				{
-					ind = j * (NTERMS + 1);
+					ind = j * (NTERMS_11 + 1);
 					covar[ind] = alpha[ind] * (1.0 + flambda);
 				}
 				mil_svd(covar, beta, delta);
@@ -789,19 +789,19 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInit
 					
 					flambda=flambda/(PARBETA_better*PARBETA_FACTOR);
 					initModel = model;
-					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS);
-					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const);	
-					covarm(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM,NTERMS);
+					me_der(&d_cuantic_const, &initModel, d_wlines_const, d_nlambda_const, pM->d_spectra, pM->spectra_mac, spectraAux, d_ah_const, slight_pixel, d_use_convolution_const, pM, d_fix_const,cosi,sinis,sina,cosa,sinda, cosda, sindi, cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS_11);
+					FijaACeroDerivadasNoNecesarias(pM->d_spectra, d_nlambda_const,NTERMS_11);	
+					covarm(d_weight_const,d_weight_sigma_const, d_sigma_const, spectroAux, d_nlambda_const, spectraAux, pM->d_spectra, beta, alpha,pM,NTERMS_11);
 					
 					#pragma unroll
-					for (j = 0; j < NTERMS * NTERMS; j++)
+					for (j = 0; j < NTERMS_11 * NTERMS_11; j++)
 						covar[j] = alpha[j];
 					ochisqr = chisqr;
 				}
 				else
 				{
 					#pragma unroll
-					for (j = 0; j < NTERMS * NTERMS; j++)
+					for (j = 0; j < NTERMS_11 * NTERMS_11; j++)
 						covar[j] = alpha[j];
 					flambda=flambda*PARBETA_worst*PARBETA_FACTOR;
 				}
@@ -831,11 +831,11 @@ __global__ void lm_mils_11(const float * __restrict__ spectro,Init_Model * vInit
  * 	@param nlamda Number of nlambdas to register.
  * 
  * */
-__device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, const Cuantic   cuantic){
+__device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, const Cuantic   cuantic,const int nterms){
 
 	
-	pM->v = (float *) malloc (NTERMS*NTERMS*sizeof(float));
-	pM->w = (float *) malloc (NTERMS*sizeof(float));
+	pM->v = (float *) malloc (nterms*nterms*sizeof(float));
+	pM->w = (float *) malloc (nterms*sizeof(float));
 
 	/************** FGAUSS *************************************/
 	pM->term = (PRECISION *) malloc(numl*sizeof(PRECISION));
@@ -849,8 +849,8 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 	pM->ext3 = (REAL *) malloc(numl * sizeof(REAL));
 	pM->ext4 = (REAL *) malloc(numl * sizeof(REAL));
 	/**********************************************************/
-	pM->AP = (REAL *) malloc(NTERMS*NTERMS*NPARMS * sizeof(REAL));
-	pM->BT = (REAL *) malloc(NPARMS*NTERMS * sizeof(REAL));
+	pM->AP = (REAL *) malloc(nterms*nterms*NPARMS * sizeof(REAL));
+	pM->BT = (REAL *) malloc(NPARMS*nterms * sizeof(REAL));
 
 	/************* funcionComponentFor *************************************/
 	pM->auxCte = (REAL *) malloc(numl * sizeof(REAL));	
@@ -861,7 +861,7 @@ __device__ void InitProfilesMemoryFromDevice(int numl, ProfilesMemory * pM, cons
 
 	pM->spectra_mac = (REAL *) malloc(numl * NPARMS * sizeof(REAL));
 	pM->spectra_slight = (REAL *) malloc(numl * NPARMS * sizeof(REAL));
-	pM->d_spectra = (REAL *) malloc(numl * NTERMS * NPARMS * sizeof(REAL));
+	pM->d_spectra = (REAL *) malloc(numl * nterms * NPARMS * sizeof(REAL));
 	pM->GMAC = (PRECISION *) malloc(numl * sizeof(PRECISION));
 	pM->GMAC_DERIV  = (PRECISION *) malloc(numl * sizeof(PRECISION));
 	pM->dirConvPar = (PRECISION * )malloc((numl + numl - 1) * sizeof(PRECISION));

@@ -38,7 +38,7 @@ __device__ void svdcmp(PRECISION *a, int m, int n, PRECISION w[], PRECISION *v)
 {
 	int flag,i,its,j,jj,k,l=0,nm=0;
 	double anorm,c,f,g,h,s,scale,x,y,z;//,*rv1;
-	double rv1[NTERMS];
+	double rv1[NTERMS_11];
 	
 	
 	//rv1=  malloc(sizeof(PRECISION) *n);

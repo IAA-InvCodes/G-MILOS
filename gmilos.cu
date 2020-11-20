@@ -75,16 +75,16 @@ __constant__ PRECISION LIMITE_INFERIOR_PRECISION_TRIG;
 __constant__ PRECISION LIMITE_INFERIOR_PRECISION_SINCOS;
 
 
-__global__ void kernel_synthesis(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,int nlambda,REAL *spectra,REAL * d_spectra, REAL  ah,REAL * slight, REAL * spectra_mc,REAL * spectra_slight, int  filter, int * fix){
+__global__ void kernel_synthesis(Cuantic *cuantic,Init_Model *initModel,PRECISION * wlines,int nlambda,REAL *spectra,REAL * d_spectra, REAL  ah,REAL * slight, REAL * spectra_mc,REAL * spectra_slight, int  filter, int * fix,const int nterms){
 
 	int i;
 	
 	ProfilesMemory * pM = (ProfilesMemory *) malloc(sizeof(ProfilesMemory));
-	InitProfilesMemoryFromDevice(nlambda,pM,d_cuantic_const);
+	InitProfilesMemoryFromDevice(nlambda,pM,d_cuantic_const,nterms);
 	REAL cosi,sinis,sina,cosa, sinda, cosda, sindi, cosdi,cosis_2;
 	int uuGlobal,FGlobal,HGlobal;
 	mil_sinrf(d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, spectra, d_ah_const, slight, spectra_mc, spectra_slight, filter, pM,&cosi,&sinis,&sina,&cosa,&sinda,&cosda,&sindi,&cosdi,&cosis_2,&uuGlobal,&FGlobal,&HGlobal);
-	me_der(&d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, d_spectra, spectra_mc, spectra_slight, d_ah_const, slight, filter,pM, fix,cosi,sinis,sina,cosa,sinda,cosda,sindi,cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,NTERMS);
+	me_der(&d_cuantic_const, &d_initModel_const, d_wlines_const, d_nlambda_const, d_spectra, spectra_mc, spectra_slight, d_ah_const, slight, filter,pM, fix,cosi,sinis,sina,cosa,sinda,cosda,sindi,cosdi,cosis_2,&uuGlobal,&FGlobal,&HGlobal,nterms);
 	FreeProfilesMemoryFromDevice(pM,d_cuantic_const);
 	free(pM);
 
@@ -542,7 +542,13 @@ int main(int argc, char **argv)
 		else{
 			d_slight = NULL;
 		}
-		kernel_synthesis<<<1,1>>>(d_Cuantic,d_initModel,d_wlines,nlambda,d_spectra,d_d_spectra, configCrontrolFile.mu,d_slight,d_spectra_mac,d_spectra_slight, configCrontrolFile.ConvolveWithPSF,d_fix);
+		if(fix[9] && fix[10]){ // there are macroturbulence and stray light then use NTERMS 11 
+			kernel_synthesis<<<1,1>>>(d_Cuantic,d_initModel,d_wlines,nlambda,d_spectra,d_d_spectra, configCrontrolFile.mu,d_slight,d_spectra_mac,d_spectra_slight, configCrontrolFile.ConvolveWithPSF,d_fix,NTERMS_11);
+		}
+		{	// else use NTERMS 10
+			kernel_synthesis<<<1,1>>>(d_Cuantic,d_initModel,d_wlines,nlambda,d_spectra,d_d_spectra, configCrontrolFile.mu,d_slight,d_spectra_mac,d_spectra_slight, configCrontrolFile.ConvolveWithPSF,d_fix,NTERMS);
+		}
+		
 		
 		checkCuda( cudaMemcpy( h_spectra, d_spectra, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyDeviceToHost ) );
 		checkCuda( cudaMemcpy( h_spectra_mac, d_spectra_mac, nlambda * NPARMS * sizeof(REAL) , cudaMemcpyDeviceToHost ) );
