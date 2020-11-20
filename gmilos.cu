@@ -634,6 +634,12 @@ int main(int argc, char **argv)
 
 	}
 	else{ // INVERT PIXEL FROM PER FILE OR IMAGE FROM FITS FILE 
+			// count how many free param we have
+		int free_params=0;
+		for(i=0;i<11;i++){
+			if(configCrontrolFile.fix[i])
+				free_params++;
+		}
 		cudaMemcpyToSymbol(cordicPosFila, posFila, TAMANIO_SVD * TAMANIO_SVD*sizeof(int));
 		cudaMemcpyToSymbol(cordicPosCol, posCol, TAMANIO_SVD * TAMANIO_SVD*sizeof(int));
 		PRECISION powAux = pow(2.0,-39);
@@ -729,7 +735,40 @@ int main(int argc, char **argv)
 			initModel.alfa = INITIAL_MODEL.alfa; //0.38; //stray light factor
 			initModel.S0 = INITIAL_MODEL.S0;
 			initModel.S1 = INITIAL_MODEL.S1;
-
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nATMOSPHERE MODEL FILE READ: %s ",configCrontrolFile.InitialGuessModel);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nINITAL MODEL ATMOSPHERE: \n\n");
+			printf("eta_0               :%lf\n",initModel.eta0);
+			printf("magnetic field [G]  :%lf\n",initModel.B);
+			printf("LOS velocity[km/s]  :%lf\n",initModel.vlos);
+			printf("Doppler width [A]   :%lf\n",initModel.dopp);
+			printf("damping             :%lf\n",initModel.aa);
+			printf("gamma [deg]         :%lf\n",initModel.gm);
+			printf("phi   [deg]         :%lf\n",initModel.az);
+			printf("S_0                 :%lf\n",initModel.S0);
+			printf("S_1                 :%lf\n",initModel.S1);
+			printf("v_mac [km/s]        :%lf\n",initModel.mac);
+			printf("filling factor      :%lf\n",initModel.alfa);
+			printf("--------------------------------------------------------------------------------\n");
+			if(configCrontrolFile.ConvolveWithPSF && initModel.mac>0){
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nThe program needs to use convolution. Filter PSF activated and macroturbulence greater than zero. ");
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			else if(configCrontrolFile.ConvolveWithPSF){
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nThe program needs to use convolution. Filter PSF activated. ");
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			else if(initModel.mac>0){
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nThe program needs to use convolution. Macroturbulence in initial atmosphere model greater than zero.");
+				printf("\n--------------------------------------------------------------------------------\n");
+			}
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nNumber of free parameters for inversion: %d", free_params);
+			printf("\n--------------------------------------------------------------------------------\n");
 			h_spectra = (REAL *) malloc(nlambda * NPARMS * sizeof(REAL));
 
 			checkCuda(cudaMalloc(&d_spectroPER, nlambda*NPARMS*sizeof(float)));
@@ -827,9 +866,9 @@ int main(int argc, char **argv)
 
 				fprintf(fptr,"\n\n");
 				fclose(fptr);
-				printf("\n*******************************************************************************************");
-				printf("\n******************INVERTED MODEL SAVED IN FILE: %s",nameAuxOutputModel);
-				printf("\n*******************************************************************************************\n");				
+				printf("\n\n--------------------------------------------------------------------------------");
+				printf("\nINVERTED MODEL SAVED IN FILE: %s",nameAuxOutputModel);
+				printf("\n--------------------------------------------------------------------------------\n");			
 			}
 			else{
 				printf("\n ¡¡¡¡¡ ERROR: OUTPUT MODEL FILE CAN NOT BE OPENED\n !!!!! ");
@@ -854,9 +893,9 @@ int main(int argc, char **argv)
 					}
 					//printf("\nVALORES DE LAS FUNCIONES RESPUESTA \n");
 					fclose(fptr);
-					printf("\n*******************************************************************************************");
-					printf("\n******************SPECTRUM SYNTHESIS ADJUSTED SAVED IN FILE: %s",nameAuxOutputStokes);
-					printf("\n*******************************************************************************************\n\n");					
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nOutput profiles: %s",nameAuxOutputStokes);
+					printf("\n--------------------------------------------------------------------------------\n");					
 				}
 				else{
 					printf("\n ¡¡¡¡¡ ERROR: OUTPUT SYNTHESIS PROFILE ADJUSTED FILE CAN NOT BE OPENED\n !!!!! ");
@@ -962,19 +1001,15 @@ int main(int argc, char **argv)
 			PRECISION timeReadImage;
 			clock_t t;
 			t = clock();
-			
 			fitsImage = readFitsSpectroImage(configCrontrolFile.ObservedProfiles,1,nlambda,0);
-			printf("\n--------------------------------------------------------------------------------");
-			printf("\nOBSERVED PROFILES FILE READ: %s", configCrontrolFile.ObservedProfiles);
-			printf("\n--------------------------------------------------------------------------------\n");
-	
 			t = clock() - t;
 			timeReadImage = ((PRECISION)t)/CLOCKS_PER_SEC; // in seconds 
-			printf("\n\n TIME TO READ FITS IMAGE:  %f seconds to execute . Número de pixeles leidos %d ", timeReadImage,fitsImage->numPixels); 
-			// array to store synthesis spectra on device 
-			// print first pixel 
-
-
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nOBSERVED PROFILES FILE READ: %s", configCrontrolFile.ObservedProfiles);
+			printf("\n--------------------------------------------------------------------------------");
+			printf("\nTIME TO READ FITS IMAGE:  %f seconds to execute ", timeReadImage); 
+			printf("\n--------------------------------------------------------------------------------\n");
+			
 			if(fitsImage!=NULL){
 
 				int activeWarps;
@@ -986,19 +1021,12 @@ int main(int argc, char **argv)
 				int threadPerBlock=32;
 				int NSTREAMS = configCrontrolFile.numStreams;
 				// function to get minGridSize and blockSize for function lm_mils with no limite of share memory and no limit of maximum block size
-				/*cudaOccupancyMaxPotentialBlockSize(&minGridSize,&blockSize,(void*)lm_mils,threadPerBlock,fitsImage->numPixels); 
-				gridSize = (fitsImage->numPixels + blockSize - 1) / blockSize;*/
-				/*printf("\n EL GRID SIZE SERÁ: %d el ",gridSize);
-				printf("\n Max potential block size MINGRIDSIZE %d BLOCKSIZE %d ",minGridSize,blockSize);*/
-
 				if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11
 					cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocks,(void*)lm_mils_11,threadPerBlock,0);
 				}
 				else{
 					cudaOccupancyMaxActiveBlocksPerMultiprocessor(&numBlocks,(void*)lm_mils,threadPerBlock,0);
 				}
-				//printf("\n MAX ACTIVE BLOCKS PER MULTIPROCESSOR %d ",numBlocks);
-
 
 				int N_RTE_PARALLEL = numBlocks * threadPerBlock; // maximun thread to compute in parallel 
 				size_t heap_size;
@@ -1100,6 +1128,41 @@ int main(int argc, char **argv)
 					imageStokesAdjust->naxis = fitsImage->naxis;
 					imageStokesAdjust->bitpix = fitsImage->bitpix;
 				}
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nATMOSPHERE MODEL FILE READ: %s ",configCrontrolFile.InitialGuessModel);
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nINITAL MODEL ATMOSPHERE: \n\n");
+				printf("eta_0               :%lf\n",INITIAL_MODEL.eta0);
+				printf("magnetic field [G]  :%lf\n",INITIAL_MODEL.B);
+				printf("LOS velocity[km/s]  :%lf\n",INITIAL_MODEL.vlos);
+				printf("Doppler width [A]   :%lf\n",INITIAL_MODEL.dopp);
+				printf("damping             :%lf\n",INITIAL_MODEL.aa);
+				printf("gamma [deg]         :%lf\n",INITIAL_MODEL.gm);
+				printf("phi   [deg]         :%lf\n",INITIAL_MODEL.az);
+				printf("S_0                 :%lf\n",INITIAL_MODEL.S0);
+				printf("S_1                 :%lf\n",INITIAL_MODEL.S1);
+				printf("v_mac [km/s]        :%lf\n",INITIAL_MODEL.mac);
+				printf("filling factor      :%lf\n",INITIAL_MODEL.alfa);
+				printf("--------------------------------------------------------------------------------\n");
+
+				if(configCrontrolFile.ConvolveWithPSF && INITIAL_MODEL.mac>0){
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nThe program needs to use convolution. Filter PSF activated and macroturbulence greater than zero. ");
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else if(configCrontrolFile.ConvolveWithPSF){
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nThe program needs to use convolution. Filter PSF activated. ");
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				else if(INITIAL_MODEL.mac>0){
+					printf("\n--------------------------------------------------------------------------------");
+					printf("\nThe program needs to use convolution. Macroturbulence in initial atmosphere model greater than zero.");
+					printf("\n--------------------------------------------------------------------------------\n");
+				}
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\nNumber of free parameters for inversion: %d", free_params);
+				printf("\n--------------------------------------------------------------------------------\n");
 
 				// COPY ALL IMAGE TO MEMORY INSIDE GPU
 				
@@ -1171,6 +1234,9 @@ int main(int argc, char **argv)
 
 				cudaEventRecord(start);
 				/****** LAUNCH KERNELS ******/
+				printf("\n--------------------------------------------------------------------------------");
+				printf("\n----------------------- IMAGE INVERSION IN PROGRESS ----------------------------");
+				printf("\n--------------------------------------------------------------------------------\n");
 				for (i = 0; i < NSTREAMS; ++i){
 					if(configCrontrolFile.fix[9] && configCrontrolFile.fix[10]){ // there are macroturbulence and stray light then use NTERMS 11
 						lm_mils_11<<<numBlocks,threadPerBlock,0,stream[i]>>>(d_spectro,d_vModels, d_vChisqrf, d_slight, d_vNumIter, d_spectraAdjusted, d_displsSpectro, d_sendCountPixels, d_displsPixels, N_RTE_PARALLEL,i,mapStrayLight);						
@@ -1192,7 +1258,9 @@ int main(int argc, char **argv)
 				
 				float milliseconds = 0;
 				cudaEventElapsedTime(&milliseconds, start, stop);
-				printf("\n FINISH EXECUTION OF INVERSION: %f seconds to execute \n", milliseconds/1000);
+				printf("\n\n--------------------------------------------------------------------------------");
+				printf("\nFINISH EXECUTION OF INVERSION: %f seconds to execute ", milliseconds/1000);
+				printf("\n--------------------------------------------------------------------------------");
 				
 				char nameAuxOutputModel [4096];
 				if(configCrontrolFile.ObservedProfiles[0]!='\0')
