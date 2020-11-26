@@ -192,8 +192,15 @@ make clean
 
 The program must be controlled with a configuration file of type **.mtrol** . Inside the run folder, you can find an example of this type of file [gmilos.mtrol](run/gmilos.mtrol). We refer you to the pdf documentation to know in detail how each parameter works. 
 
-The program must be executed by passing the configuration file as a parameter:
+The program must be executed by passing the configuration file as a parameter. There is two examples in this repository. The first one is for execute a spectral synthesis:
 
 ```
-./gmilos run/gmilos.mtrol
+./gmilos run/synthesis.mtrol
 ```
+
+And the second makes an inversion over this synthesis
+
+```
+./gmilos run/invert.mtrol
+```
+In both cases, the results are stored in the directory **data**. 
