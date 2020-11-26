@@ -1,7 +1,7 @@
-Number of cycles          (*):15                         ! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
-Observed profiles          (*):/home/mcabrera/data/2014.09.28_09_18_00_t020_300_600.fits.fits    !
+Number of cycles          (*):100                         ! 0 = synthesis, n= max num of iterations, -1 = use classical estimates
+Observed profiles          (*):data/synthesis_gpu.per    !
 Stray light file             :                  ! (none=no stray light contam)
-PSF file                     :                 ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER
+PSF file                     :run/CRISP_6173_1mA.psf                 ! .psf file -> read file; number -> FWHM (mA) of gaussian filter; empty -> NO FILTER
 Wavelength grid file      (s):run/malla.grid    ! (automatic selection, grid, or wavelength file)
 Atomic parameters file       :run/LINES         !
 Abundances file              :                                      ! not used
@@ -39,6 +39,6 @@ Estimated S/N for I          :1000              !
 Continuum contrast           :                  ! Not used for the moment
 Initial diagonal element     :0.1               ! (DEFAULT value: 1.e-1)
 Use FFT for convolutions     :0                 ! (0 or blank = use direct convolution, 1 = use FFT)
-Diagonal element acceleration :0                ! (0 or blank=no, 1=yes)
+Diagonal element acceleration:0                ! (0 or blank=no, 1=yes)
 Number of Streams            :4				    ! (number of streams to overlap GPU process)
 Device number                :0				    ! (0 or blank=0) number of device to use in local machine for inversion
