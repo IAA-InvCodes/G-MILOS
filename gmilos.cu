@@ -1,18 +1,11 @@
+// G-MILOS v1.0 (January 2021)
+// MILNE-EDDINGTON INVERSION CODE for CUDA-capable GPUs
 
-//    _______             _______ _________ _        _______  _______
-//   (  ____ \           (       )\__   __/( \      (  ___  )(  ____ \
-//   | (    \/           | () () |   ) (   | (      | (   ) || (    \/
-//   | |         _____   | || || |   | |   | |      | |   | || (_____
-//   | |        (_____)  | |(_)| |   | |   | |      | |   | |(_____  )
-//   | |                 | |   | |   | |   | |      | |   | |      ) |
-//   | (____/\           | )   ( |___) (___| (____/\| (___) |/\____) |
-//   (_______/           |/     \|\_______/(_______/(_______)\_______)
-//
-//
-// CMILOS v1.0 (2020)
-// RTE INVERSION C code (based on the ILD code MILOS by D. Orozco)
-// Manuel (IAA-CSIC)
-//
+// M. Cabrera, J.P. Cobos, L. Bellot Rubio (Instituto de Astrofisica de Andalucia, IAA-CSIC)
+
+//This work has received funding from the European Union's Horizon 2020 research and 
+//innovation programme under grant agreement No 824135 (SOLARNET).
+
 
 /*
 ;      eta0 = line-to-continuum absorption coefficient ratio
