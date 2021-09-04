@@ -8,11 +8,15 @@ This work has received funding from the European Union's Horizon 2020 research a
 
 For questions, please contact Luis Bellot (lbellot@iaa.es).
 
+
+
+
+
 ## Introduction
 
 This repository contains G-MLOS, a CUDA implementation of the P-MILOS inversion code. G-MILOS is the first Milne-Eddington code based on the Levenberg-Marquardt algorimth running on Graphics Processing Units (GPUs). It can invert full spectropolarimetric measurements of photospheric spectral lines using a one-component Milne-Eddington atmosphere and taking into account the transmission profile of the instrument and stray-light contamination. The code is very fast, reaching speeds of 7400 pixels per second on an NVIDIA Tesla V100 GPU. This refers to the inversion of a full Stokes data cube in FITS format (4 Stokes profiles, 30 wavelength samples) with 9 free parameters, a maximum of 50 iteration steps, and PSF convolution. 
 
-In what follows we explain how to install and run the code. We also provide a brief overview of the input/output files. A complete user manual can be found [here](g-milos_manual.pdf)
+In what follows we explain how to install and run the code. We also provide a brief overview of the input/output files. A complete user manual can be found [here](g-milos_manual.pdf).
 
 
 ## Requeriments 
@@ -21,12 +25,12 @@ C and CUDA must be installed on the system. The oldest CUDA version supported by
 
 ### Libraries
 
-The following libraries are needed by G-MILOS: 
+The following libraries are needed: 
 
 - [CFITSIO](https://heasarc.gsfc.nasa.gov/fitsio/) (Oldest version tested 3.3.4.0)
 - [GSL](https://www.gnu.org/software/gsl/) (Oldest version tested 1.13-3)
   
-There are different ways to install them depending on the operating system. In Ubuntu 18.04, we used the following commands:
+There are different ways to install them depending on the operating system. On Ubuntu you can use the following commands:
 
 CFITSIO
 
