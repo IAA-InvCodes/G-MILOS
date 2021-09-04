@@ -10,18 +10,16 @@ For questions, please contact Luis Bellot (lbellot@iaa.es).
 
 
 
-
-
 ## Introduction
 
-This repository contains G-MLOS, a CUDA implementation of the P-MILOS inversion code. G-MILOS is the first Milne-Eddington code based on the Levenberg-Marquardt algorimth running on Graphics Processing Units (GPUs). It can invert full spectropolarimetric measurements of photospheric spectral lines using a one-component Milne-Eddington atmosphere and taking into account the transmission profile of the instrument and stray-light contamination. The code is very fast, reaching speeds of 7400 pixels per second on an NVIDIA Tesla V100 GPU. This refers to the inversion of a full Stokes data cube in FITS format (4 Stokes profiles, 30 wavelength samples) with 9 free parameters, a maximum of 50 iteration steps, and PSF convolution. 
+This repository contains G-MILOS, a CUDA implementation of the P-MILOS inversion code. G-MILOS is the first Milne-Eddington code based on the Levenberg-Marquardt algorimth running on Graphics Processing Units (GPUs). It can invert full spectropolarimetric measurements of photospheric spectral lines using a one-component Milne-Eddington atmosphere and taking into account the transmission profile of the instrument and stray-light contamination. The code is very fast, reaching speeds of 7400 pixels per second on an NVIDIA Tesla V100 GPU. This refers to the inversion of a full Stokes data cube in FITS format (4 Stokes profiles, 30 wavelength samples) with 9 free parameters, a maximum of 50 iteration steps, and PSF convolution. 
 
-In what follows we explain how to install and run the code. We also provide a brief overview of the input/output files. A complete user manual can be found [here](g-milos_manual.pdf).
+In what follows we explain how to install and run the code. We also provide a brief overview of the input/output files. A detailed user manual can be found [here](g-milos_manual.pdf).
 
 
 ## Requeriments 
 
-Both C and CUDA must be installed on the system. The oldest CUDA version supported by G-MILOS is 3.5, but we strongly recommend you to use the latest versions of the CUDA Toolkit and the  Intel C compiler to achieve maximum performance. 
+Both C and CUDA must be installed on the system.  We strongly recommend you to use the latest versions of the Intel C compiler and the CUDA Toolkit to achieve maximum performance. The oldest CUDA version supported by G-MILOS is 3.5.
 
 
 ### Libraries
@@ -52,23 +50,24 @@ sudo apt-get install libgsl*
 
 The code have to be compiled on the target machine. To do that, run the command 'make' in the directory where the source code is located. 
 
-There are two environment variables you must define in the shell, namely CUDA_PATH and SMS. The first one contains the path of the CUDA Toolkit and the second gives the CUDA compatibility with which the code will be compiled (this value must be known from the graphics card architecture). Here is an example how to create the two environment variables using a bash command console. To make these variables permanent, add them to your ~/.bashrc file.
+* Compile and create executable **gmilos** 
+```
+make 
+```
+* Clean object files and executable files 
+```
+make clean
+```
+
+There are two environment variables you must define in the shell, namely CUDA_PATH and SMS. The first one contains the path to the CUDA Toolkit and the second gives the CUDA compatibility with which the code will be compiled (this value must be known from the graphics card architecture). Here is an example how to create the two environment variables using a bash command console. To make these variables permanent, add them to your ~/.bashrc file.
 
 ```
 export CUDA_PATH="/usr/local/cuda-10.1"
 export SMS="35"
 ```
 
-If these variables are not defined, the makefile will use CUDA_PATH=“/usr/local/cuda-10.1” and will compile the code for GPUs with compute capability 35 37 50 52 60 and 70. 
+If these variables are not defined, make will use CUDA_PATH=“/usr/local/cuda-10.1” and will compile the code for GPUs with compute capability 35 37 50 52 60 and 70. 
 
-* Compile and create executable **gmilos** 
-```
-make 
-```
-* Clean object files and executable files. 
-```
-make clean
-```
 
 ## Execution
 
