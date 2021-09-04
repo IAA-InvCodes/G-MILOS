@@ -21,7 +21,8 @@ In what follows we explain how to install and run the code. We also provide a br
 
 ## Requeriments 
 
-C and CUDA must be installed on the system. The oldest CUDA version supported by G-MILOS is 3.5.
+Both C and CUDA must be installed on the system. The oldest CUDA version supported by G-MILOS is 3.5, but we strongly recommend you to use the latest versions of the CUDA Toolkit and the  Intel C compiler to achieve maximum performance. 
+
 
 ### Libraries
 
@@ -49,16 +50,16 @@ sudo apt-get install libgsl*
 
 ## Compilation
 
-The code needs to be compiled on the target machine. To do that, run the command 'make' in the directory where the source code is located. We strongly recommend you to use the latest versions of the CUDA Toolkit and the  Intel C compiler, to achieve maximum performance. 
+The code needs to be compiled on the target machine. To do that, run the command 'make' in the directory where the source code is located. 
 
-There are two environment variables you must define in your shell, namely CUDA_PATH and SMS. The first one contains the path of the CUDA Toolkit in the machine and the second gives the CUDA compatibility with which the code will be compiled (this value must be known from your graphics card architecture). Here is an example how to create the two environment variables using a bash command console. To make these variables permanent, add them to your ~/.bashrc file.
+There are two environment variables you must define in the shell, namely CUDA_PATH and SMS. The first one contains the path of the CUDA Toolkit and the second gives the CUDA compatibility with which the code will be compiled (this value must be known from the graphics card architecture). Here is an example how to create the two environment variables using a bash command console. To make these variables permanent, add them to your ~/.bashrc file.
 
 ```
 export CUDA_PATH="/usr/local/cuda-10.1"
 export SMS="35"
 ```
 
-If these variables are not defined, the makefile will use CUDA_PATH=“/usr/local/cuda-10.1” and will compile the code for GPUs with Compute Capability 35 37 50 52 60 and 70. 
+If these variables are not defined, the makefile will use CUDA_PATH=“/usr/local/cuda-10.1” and will compile the code for GPUs with compute capability 35 37 50 52 60 and 70. 
 
 * Compile and create executable **gmilos** 
 ```
@@ -71,7 +72,7 @@ make clean
 
 ## Execution
 
-G-MILOS uses a control file of  **.mtrol** type. An example can be found in the run directory: [invert.mtrol](run/invert.mtrol). Please refer to the user manual for a detailed explanation of the different parameters in the control file. 
+G-MILOS uses an ASCII control file with extension **.mtrol**. An example ([invert.mtrol](run/invert.mtrol))can be found in the run directory. Please refer to the user manual for a detailed explanation of the different parameters in the control file. 
 
 The code is executed by passing the control file as a parameter. There are two examples in this repository. The first one executes a spectral synthesis for the given model atmosphere:
 
@@ -88,9 +89,9 @@ The second example inverts the profiles generated in the previous synthesis:
 In both cases, the results are stored in the directory **data**. 
 
 
-### Input/output files
+## Input/output files
 
-#### Profile files (.per)
+### Profile files (.per)
 
 The Stokes profiles of an individual pixel can be stored in an ASCII file with extension **.per**. These have the same format as SIR .per files. They are used as input when inverting one pixel and as output when synthesizing the profiles from a given model atmosphere.
 
@@ -138,7 +139,7 @@ This is an example of a file containing the Stokes parameters of spectral line n
 1    665.000000    9.895550e-01    3.734447e-04    2.531845e-04    -1.597078e-03
 ```
 
-#### Profile files (.fits) 
+### Profile files (.fits) 
 
 G-MILOS can invert single data cubes containing the Stokes profiles observed in the entire field of view. 
 
@@ -161,7 +162,7 @@ CTYPE4  = 'HPLT-TAN  '
 When the FITS data cube does not have a header, the array is assumed to be ordered as (n_lambdas, n_stokes, n_x, n_y).
 
 
-#### Wavelength grid file (.grid)
+### Wavelength grid file (.grid)
 
 The wavelength grid file specifies the spectral line and the observed wavelength positions  (inversion mode) or the wavelength positions in which the profiles must be calculated (synthesis mode).  The line is identified by means of an index that must be present in the atomic parameter file. The wavelength range is given using three numbers: the initial wavelength, the wavelength step, and the final wavelength (all in mA). 
 
@@ -176,12 +177,12 @@ Line indices            :   Initial lambda     Step     Final lambda
 This example corresponds to the file [malla.grid](run/malla.grid) in the *run* directory.
 
 
-#### Wavelength grid file (.fits)
+### Wavelength grid file (.fits)
 
 The wavelenght positions can also be given in FITS format. If all pixels use the same wavelength grid, the FITS file should contain a 2-dimension array with (1, n_lambdas) elements. The first dimension contains the index of the line in the atomic parameter file and the second dimension the observed wavelengths. 
 
 
-#### Model atmosphere file (.mod)
+### Model atmosphere file (.mod)
 
 Files with extension **.mod** are ASCII files containing the parameters of a Milne-Eddington model atmosphere. They are used in three situations:
 
@@ -207,7 +208,7 @@ filling factor       :1
 
 This file is different from the equivalent SIR file because Milne-Eddington atmospheres can be described with only 11 parameters. The units of the parameters are: Gauss (magnetic field strength), km/s (LOS velocity and macroturbulent velocity v_mac), Angstrom (Doppler width), and degrees (inclination gamma and azimuth phi). The rest of parameters do not have units. 
 
-#### Model atmosphere file (.fits) 
+### Model atmosphere file (.fits) 
 
 When full data cubes are inverted, the resulting model atmospheres are stored in FITS format as 3-dimension arrays with (n_x, n_y, 13) elements. The first two dimensions give the spatial coordinates x and y. The third dimension contains the eleven parameters of the model, plus the number of interations used by the code to find the solution and the chisqr-value of the fit. Therefore, the 13 values stored in the third dimension are: 
 
