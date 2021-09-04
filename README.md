@@ -1,11 +1,22 @@
-# GPU-MILOS
+# G-MILOS
 
 ## Description 
 
-This repository contains an implementacion of MILOS using CUDA and will get you a copy of the project up and running on your local machine for development and testing purposes. An extended user manual can be found [here](gmilos_manual.pdf). But in this page you can find a quick overview about how to install the necessary libraries, the types of files used and how to use the program. In this manual we will assume that CUDA is installed on the system. The oldest version of CUDA supported by the code is 3.5 . 
+Authors: Manuel Cabrera, Juan P. Cobos, Luis Bellot Rubio (IAA-CSIC).
 
+This work has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 824135 (SOLARNET).
+
+For questions, please contact Luis Bellot (lbellot@iaa.es).
+
+## Introduction
+
+This repository contains G-MLOS, a CUDA implementation of the P-MILOS inversion code for Graphics Processing Units (GPUs). G-MILOS is the first Milne-Eddington inversion code based on the Levenberg-Marquardt algorimth running on GPUs. It can invert full spectropolarimetric measurements of photospheric spectral lines using a one-component Milne-Eddington atmosphere and taking into account the transmission profile of the instrument and stray-light contamination. The code reaches speeds of 7400 pixels per second on an NVIDIA Tesla V100 GPU during the inversion of a full Stokes data cube in FITS format (4 Stokes profiles, 30 wavelength samples) with 9 free parameters, a maximum of 50 iteration steps, and PSF convolution. 
+
+In this page we explain how to install and run the code. We also provide a brief overview of the input/output files. A complete user manual can be found [here](gmilos_manual.pdf)
 
 ## Requeriments 
+
+CUDA must be installed on the system. The oldest version of CUDA supported by G-MILOS is 5.0.
 
 ### Libraries
 
