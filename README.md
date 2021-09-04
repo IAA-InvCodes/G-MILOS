@@ -50,7 +50,7 @@ sudo apt-get install libgsl*
 
 ## Compilation
 
-The code needs to be compiled on the target machine. To do that, run the command 'make' in the directory where the source code is located. 
+The code have to be compiled on the target machine. To do that, run the command 'make' in the directory where the source code is located. 
 
 There are two environment variables you must define in the shell, namely CUDA_PATH and SMS. The first one contains the path of the CUDA Toolkit and the second gives the CUDA compatibility with which the code will be compiled (this value must be known from the graphics card architecture). Here is an example how to create the two environment variables using a bash command console. To make these variables permanent, add them to your ~/.bashrc file.
 
@@ -72,7 +72,7 @@ make clean
 
 ## Execution
 
-G-MILOS uses an ASCII control file with extension **.mtrol**. An example ([invert.mtrol](run/invert.mtrol))can be found in the run directory. Please refer to the user manual for a detailed explanation of the different parameters in the control file. 
+G-MILOS uses an ASCII control file with extension **.mtrol**. An example can be found in the *run* directory ([invert.mtrol](run/invert.mtrol)). Please refer to the user manual for a detailed explanation of the different parameters in the control file. 
 
 The code is executed by passing the control file as a parameter. There are two examples in this repository. The first one executes a spectral synthesis for the given model atmosphere:
 
@@ -86,7 +86,7 @@ The second example inverts the profiles generated in the previous synthesis:
 ./gmilos run/invert.mtrol
 ```
 
-In both cases, the results are stored in the directory **data**. 
+In both cases, the results are stored in the *data* directory
 
 
 ## Input/output files
